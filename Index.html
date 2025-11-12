@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mata Mae Business - Billing System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding-top: 20px;
+            width: 250px;
+        }
+        
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar a:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .sidebar a.active {
+            background-color: var(--secondary-color);
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border: none;
+        }
+        
+        .btn-danger {
+            background-color: var(--accent-color);
+            border: none;
+        }
+        
+        .table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .logo-container {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            max-width: 150px;
+            max-height: 80px;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+        
+        .business-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .invoice-logo {
+            max-width: 150px;
+            max-height: 80px;
+            border-radius: 8px;
+        }
+        
+        .invoice-details {
+            text-align: right;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .tab-content {
+            padding: 20px 0;
+        }
+        
+        .logo-upload-container {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .logo-upload-container:hover {
+            border-color: var(--secondary-color);
+            background-color: #f8f9fa;
+        }
+        
+        .logo-preview {
+            max-width: 200px;
+            max-height: 120px;
+            margin: 10px auto;
+            display: block;
+            border-radius: 8px;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        
+        .status-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .firebase-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        
+        .status-online {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-offline {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .sync-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .sync-green {
+            background-color: #28a745;
+        }
+        
+        .sync-red {
+            background-color: #dc3545;
+        }
+        
+        .sync-yellow {
+            background-color: #ffc107;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="firebaseStatus" class="firebase-status status-offline">
+        <span class="sync-indicator sync-red"></span> Offline
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar">
+                <div class="logo-container">
+                    <img src="#" id="businessLogo" class="logo" alt="Business Logo">
+                    <div class="business-name" id="businessName">Mata Mae Business</div>
+                </div>
+                <a href="#" class="active" data-tab="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a href="#" data-tab="billing"><i class="fas fa-shopping-cart"></i> Billing</a>
+                <a href="#" data-tab="items"><i class="fas fa-box"></i> Items</a>
+                <a href="#" data-tab="stock"><i class="fas fa-warehouse"></i> Stock</a>
+                <a href="#" data-tab="admin"><i class="fas fa-cog"></i> Admin Panel</a>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <!-- Dashboard Tab -->
+                <div id="dashboard" class="tab-content">
+                    <h2>Dashboard <small class="text-muted" id="syncStatus">Loading...</small></h2>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card text-white bg-primary">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total Items</h5>
+                                    <p class="card-text display-4" id="totalItems">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-success">
+                                <div class="card-body">
+                                    <h5 class="card-title">Today's Sales</h5>
+                                    <p class="card-text display-4" id="todaySales">Rs. 0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-warning">
+                                <div class="card-body">
+                                    <h5 class="card-title">Low Stock Items</h5>
+                                    <p class="card-text display-4" id="lowStockItems">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-danger">
+                                <div class="card-body">
+                                    <h5 class="card-title">Out of Stock</h5>
+                                    <p class="card-text display-4" id="outOfStock">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Recent Bills</div>
+                                <div class="card-body">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Bill No</th>
+                                                <th>Date</th>
+                                                <th>Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="recentBills">
+                                            <!-- Recent bills will be populated here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Low Stock Alert</div>
+                                <div class="card-body">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Item Name</th>
+                                                <th>Current Stock</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="lowStockTable">
+                                            <!-- Low stock items will be populated here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing Tab -->
+                <div id="billing" class="tab-content hidden">
+                    <h2>Billing</h2>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">Add Items to Bill</div>
+                                <div class="card-body">
+                                    <div class="input-group mb-3">
+                                        <input type="text" class="form-control" id="searchItem" placeholder="Search items...">
+                                        <button class="btn btn-primary" type="button" id="searchBtn">Search</button>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Item Name</th>
+                                                    <th>Price (Rs.)</th>
+                                                    <th>Stock</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="itemsTable">
+                                                <!-- Items will be populated here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">Current Bill</div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Item</th>
+                                                    <th>Qty</th>
+                                                    <th>Price</th>
+                                                    <th>Total</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="cartItems">
+                                                <!-- Cart items will be populated here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="discount" class="form-label">Discount (Rs.)</label>
+                                        <input type="number" class="form-control" id="discount" value="0" min="0">
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-success" id="generateBill">Generate Bill</button>
+                                        <button class="btn btn-secondary" id="clearCart">Clear Cart</button>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Total:</strong>
+                                        <span id="cartTotal">Rs. 0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Discount:</strong>
+                                        <span id="discountAmount">Rs. 0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Final Amount:</strong>
+                                        <span id="finalAmount">Rs. 0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items Tab -->
+                <div id="items" class="tab-content hidden">
+                    <h2>Items Management</h2>
+                    <div class="card">
+                        <div class="card-header">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addItemModal">Add New Item</button>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Item Name</th>
+                                        <th>Price (Rs.)</th>
+                                        <th>Stock</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="itemsList">
+                                    <!-- Items will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock Tab -->
+                <div id="stock" class="tab-content hidden">
+                    <h2>Stock Management</h2>
+                    <div class="card">
+                        <div class="card-header">Current Stock</div>
+                        <div class="card-body">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Item Name</th>
+                                        <th>Current Stock</th>
+                                        <th>Price (Rs.)</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stockTable">
+                                    <!-- Stock items will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Panel Tab -->
+                <div id="admin" class="tab-content hidden">
+                    <h2>Admin Panel</h2>
+                    <div class="card">
+                        <div class="card-header">Business Settings</div>
+                        <div class="card-body">
+                            <form id="businessSettings">
+                                <div class="mb-3">
+                                    <label for="businessNameInput" class="form-label">Business Name</label>
+                                    <input type="text" class="form-control" id="businessNameInput" value="Mata Mae Business">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Business Logo</label>
+                                    <div class="logo-upload-container" id="logoUploadArea">
+                                        <div class="upload-icon">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </div>
+                                        <p>Click to upload or drag and drop</p>
+                                        <p class="text-muted">PNG, JPG, JPEG up to 5MB</p>
+                                        <img id="logoPreview" class="logo-preview hidden" alt="Logo preview">
+                                    </div>
+                                    <input type="file" id="logoFileInput" accept="image/png, image/jpeg, image/jpg" class="hidden">
+                                    <div class="d-flex gap-2 mt-2">
+                                        <button type="button" class="btn btn-primary btn-sm" id="uploadLogoBtn">Upload Logo</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" id="removeLogoBtn">Remove Logo</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="contactDetails" class="form-label">Contact Details</label>
+                                    <textarea class="form-control" id="contactDetails" rows="3">123 Main Street, City, Country\nPhone: +94 77 123 4567\nEmail: info@matamae.lk</textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Settings</button>
+                            </form>
+                            <div id="statusMessage" class="mt-3"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-header">Data Management</div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2 d-md-block">
+                                <button class="btn btn-info" id="syncDataBtn">Force Sync with Firebase</button>
+                                <button class="btn btn-warning" id="exportDataBtn">Export Data</button>
+                                <button class="btn btn-danger" id="clearDataBtn">Clear All Data</button>
+                            </div>
+                            <div class="mt-3">
+                                <small class="text-muted">Last Sync: <span id="lastSyncTime">Never</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div class="modal fade" id="addItemModal" tabindex="-1" aria-labelledby="addItemModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addItemModalLabel">Add New Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addItemForm">
+                        <div class="mb-3">
+                            <label for="itemName" class="form-label">Item Name</label>
+                            <input type="text" class="form-control" id="itemName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="itemPrice" class="form-label">Price (Rs.)</label>
+                            <input type="number" class="form-control" id="itemPrice" min="0" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="itemStock" class="form-label">Initial Stock</label>
+                            <input type="number" class="form-control" id="itemStock" min="0" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveItem">Save Item</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bill Preview Modal -->
+    <div class="modal fade" id="billPreviewModal" tabindex="-1" aria-labelledby="billPreviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="billPreviewModalLabel">Bill Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="billContent">
+                        <!-- Bill content will be populated here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="printBill">Print Bill</button>
+                    <button type="button" class="btn btn-success" id="downloadPDF">Download as PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCAdozUt_tmGAMMw_TiQ7_mm8-_MKKoicU",
+            authDomain: "tharaka-3bf9b.firebaseapp.com",
+            databaseURL: "https://tharaka-3bf9b-default-rtdb.firebaseio.com",
+            projectId: "tharaka-3bf9b",
+            storageBucket: "tharaka-3bf9b.firebasestorage.app",
+            messagingSenderId: "337234919689",
+            appId: "1:337234919689:web:13bc866070e0f79845d3d8",
+            measurementId: "G-PQEQVW5DLG"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const storage = firebase.storage();
+
+        // Initialize data
+        let items = [];
+        let bills = [];
+        let cart = [];
+        let businessSettings = {
+            name: "Mata Mae Business",
+            logo: "",
+            contact: "123 Main Street, City, Country\nPhone: +94 77 123 4567\nEmail: info@matamae.lk"
+        };
+        
+        let selectedLogoFile = null;
+        let isOnline = false;
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Initialize Firebase connection
+            initializeFirebase();
+            
+            // Show dashboard by default
+            showTab('dashboard');
+        });
+
+        // Initialize Firebase Realtime Database
+        function initializeFirebase() {
+            updateFirebaseStatus('Connecting to Firebase...', 'yellow');
+            
+            // Set up connection state listener
+            const connectedRef = database.ref(".info/connected");
+            connectedRef.on("value", function(snap) {
+                isOnline = snap.val() === true;
+                if (isOnline) {
+                    updateFirebaseStatus('Connected to Firebase', 'green');
+                    loadAllDataFromFirebase();
+                } else {
+                    updateFirebaseStatus('Offline - Changes will sync when online', 'red');
+                    loadFromLocalStorage();
+                }
+            });
+
+            // Set up data change listeners for real-time updates
+            setupRealtimeListeners();
+        }
+
+        // Set up real-time listeners for data changes
+        function setupRealtimeListeners() {
+            // Listen for items changes
+            database.ref('items').on('value', (snapshot) => {
+                const firebaseItems = snapshot.val();
+                if (firebaseItems) {
+                    items = Object.values(firebaseItems);
+                    localStorage.setItem('items', JSON.stringify(items));
+                    updateItemsDisplay();
+                    updateStockDisplay();
+                    updateBillingDisplay();
+                    updateDashboard();
+                }
+            });
+
+            // Listen for bills changes
+            database.ref('bills').on('value', (snapshot) => {
+                const firebaseBills = snapshot.val();
+                if (firebaseBills) {
+                    bills = Object.values(firebaseBills);
+                    localStorage.setItem('bills', JSON.stringify(bills));
+                    updateDashboard();
+                }
+            });
+
+            // Listen for business settings changes
+            database.ref('businessSettings').on('value', (snapshot) => {
+                const firebaseSettings = snapshot.val();
+                if (firebaseSettings) {
+                    businessSettings = firebaseSettings;
+                    localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
+                    loadBusinessSettings();
+                }
+            });
+        }
+
+        // Load all data from Firebase
+        function loadAllDataFromFirebase() {
+            Promise.all([
+                database.ref('items').once('value'),
+                database.ref('bills').once('value'),
+                database.ref('businessSettings').once('value')
+            ]).then(([itemsSnapshot, billsSnapshot, settingsSnapshot]) => {
+                // Load items
+                const firebaseItems = itemsSnapshot.val();
+                if (firebaseItems) {
+                    items = Object.values(firebaseItems);
+                    localStorage.setItem('items', JSON.stringify(items));
+                } else {
+                    // If no items in Firebase, initialize with sample data
+                    initializeSampleData();
+                }
+
+                // Load bills
+                const firebaseBills = billsSnapshot.val();
+                if (firebaseBills) {
+                    bills = Object.values(firebaseBills);
+                    localStorage.setItem('bills', JSON.stringify(bills));
+                }
+
+                // Load settings
+                const firebaseSettings = settingsSnapshot.val();
+                if (firebaseSettings) {
+                    businessSettings = firebaseSettings;
+                    localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
+                }
+
+                // Update all displays
+                loadBusinessSettings();
+                updateItemsDisplay();
+                updateStockDisplay();
+                updateBillingDisplay();
+                updateDashboard();
+                
+                updateLastSyncTime();
+                showStatus('Data loaded from Firebase successfully!', 'success');
+            }).catch((error) => {
+                console.error('Error loading data from Firebase:', error);
+                loadFromLocalStorage();
+                showStatus('Using local data. Firebase connection failed.', 'error');
+            });
+        }
+
+        // Initialize sample data
+        function initializeSampleData() {
+            const sampleItems = [
+                { id: Date.now() + 1, name: "Rice 1kg", price: 120, stock: 50 },
+                { id: Date.now() + 2, name: "Sugar 1kg", price: 90, stock: 30 },
+                { id: Date.now() + 3, name: "Flour 1kg", price: 80, stock: 25 },
+                { id: Date.now() + 4, name: "Milk Powder 400g", price: 450, stock: 15 },
+                { id: Date.now() + 5, name: "Tea 200g", price: 180, stock: 20 }
+            ];
+            
+            items = sampleItems;
+            localStorage.setItem('items', JSON.stringify(items));
+            
+            // Save to Firebase
+            sampleItems.forEach(item => {
+                database.ref('items/' + item.id).set(item);
+            });
+            
+            showStatus('Sample data initialized!', 'success');
+        }
+
+        // Load data from local storage as fallback
+        function loadFromLocalStorage() {
+            const localItems = localStorage.getItem('items');
+            const localBills = localStorage.getItem('bills');
+            const localSettings = localStorage.getItem('businessSettings');
+
+            if (localItems) items = JSON.parse(localItems);
+            if (localBills) bills = JSON.parse(localBills);
+            if (localSettings) businessSettings = JSON.parse(localSettings);
+
+            loadBusinessSettings();
+            updateItemsDisplay();
+            updateStockDisplay();
+            updateBillingDisplay();
+            updateDashboard();
+        }
+
+        // Update Firebase connection status
+        function updateFirebaseStatus(message, color) {
+            const statusElement = document.getElementById('firebaseStatus');
+            const syncStatusElement = document.getElementById('syncStatus');
+            const indicator = statusElement.querySelector('.sync-indicator');
+            
+            indicator.className = 'sync-indicator';
+            
+            if (color === 'green') {
+                statusElement.className = 'firebase-status status-online';
+                indicator.classList.add('sync-green');
+                statusElement.innerHTML = `<span class="sync-indicator sync-green"></span> Online`;
+                syncStatusElement.textContent = 'Live Sync Active';
+            } else if (color === 'red') {
+                statusElement.className = 'firebase-status status-offline';
+                indicator.classList.add('sync-red');
+                statusElement.innerHTML = `<span class="sync-indicator sync-red"></span> Offline`;
+                syncStatusElement.textContent = 'Offline Mode';
+            } else {
+                statusElement.className = 'firebase-status status-info';
+                indicator.classList.add('sync-yellow');
+                statusElement.innerHTML = `<span class="sync-indicator sync-yellow"></span> ${message}`;
+                syncStatusElement.textContent = message;
+            }
+        }
+
+        // Update last sync time
+        function updateLastSyncTime() {
+            const now = new Date();
+            document.getElementById('lastSyncTime').textContent = now.toLocaleString();
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Sidebar navigation
+            document.querySelectorAll('.sidebar a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tab = this.getAttribute('data-tab');
+                    showTab(tab);
+                    
+                    // Update active class
+                    document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Search items
+            document.getElementById('searchBtn').addEventListener('click', searchItems);
+            document.getElementById('searchItem').addEventListener('input', searchItems);
+            
+            // Cart and billing
+            document.getElementById('generateBill').addEventListener('click', generateBill);
+            document.getElementById('clearCart').addEventListener('click', clearCart);
+            document.getElementById('discount').addEventListener('input', updateCartTotal);
+            
+            // Items management
+            document.getElementById('saveItem').addEventListener('click', saveItem);
+            
+            // Business settings
+            document.getElementById('businessSettings').addEventListener('submit', saveBusinessSettings);
+            
+            // Logo upload
+            document.getElementById('logoUploadArea').addEventListener('click', () => {
+                document.getElementById('logoFileInput').click();
+            });
+            
+            document.getElementById('logoFileInput').addEventListener('change', handleLogoSelect);
+            document.getElementById('uploadLogoBtn').addEventListener('click', uploadLogo);
+            document.getElementById('removeLogoBtn').addEventListener('click', removeLogo);
+            
+            // Bill actions
+            document.getElementById('printBill').addEventListener('click', printBill);
+            document.getElementById('downloadPDF').addEventListener('click', downloadPDF);
+            
+            // Data management
+            document.getElementById('syncDataBtn').addEventListener('click', forceSyncWithFirebase);
+            document.getElementById('exportDataBtn').addEventListener('click', exportData);
+            document.getElementById('clearDataBtn').addEventListener('click', clearAllData);
+        }
+
+        // Show selected tab
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.remove('hidden');
+            
+            // Refresh data if needed
+            if (tabName === 'dashboard') {
+                updateDashboard();
+            } else if (tabName === 'items') {
+                updateItemsDisplay();
+            } else if (tabName === 'stock') {
+                updateStockDisplay();
+            } else if (tabName === 'billing') {
+                updateBillingDisplay();
+            }
+        }
+
+        // Load business settings
+        function loadBusinessSettings() {
+            document.getElementById('businessName').textContent = businessSettings.name;
+            document.getElementById('businessNameInput').value = businessSettings.name;
+            document.getElementById('contactDetails').value = businessSettings.contact;
+            
+            if (businessSettings.logo) {
+                document.getElementById('businessLogo').src = businessSettings.logo;
+                document.getElementById('logoPreview').src = businessSettings.logo;
+                document.getElementById('logoPreview').classList.remove('hidden');
+            }
+        }
+
+        // Handle logo selection
+        function handleLogoSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Check file type
+                if (!file.type.match('image/jpeg') && !file.type.match('image/jpg') && !file.type.match('image/png')) {
+                    showStatus('Please select a JPG, JPEG or PNG image file.', 'error');
+                    return;
+                }
+                
+                // Check file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    showStatus('File size must be less than 5MB.', 'error');
+                    return;
+                }
+                
+                selectedLogoFile = file;
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('logoPreview').src = e.target.result;
+                    document.getElementById('logoPreview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+                
+                showStatus('Logo selected. Click "Upload Logo" to save it.', 'info');
+            }
+        }
+
+        // Upload logo to Firebase Storage
+        function uploadLogo() {
+            if (!selectedLogoFile) {
+                showStatus('Please select a logo file first.', 'error');
+                return;
+            }
+            
+            showStatus('Uploading logo...', 'info');
+            
+            const storageRef = storage.ref();
+            const logoRef = storageRef.child('business-logo/' + Date.now() + '-' + selectedLogoFile.name);
+            
+            logoRef.put(selectedLogoFile).then((snapshot) => {
+                return snapshot.ref.getDownloadURL();
+            }).then((downloadURL) => {
+                businessSettings.logo = downloadURL;
+                localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
+                
+                // Save to Firebase
+                saveToFirebase('businessSettings', businessSettings);
+                
+                loadBusinessSettings();
+                showStatus('Logo uploaded successfully!', 'success');
+                selectedLogoFile = null;
+            }).catch((error) => {
+                console.error('Error uploading logo:', error);
+                showStatus('Error uploading logo: ' + error.message, 'error');
+            });
+        }
+
+        // Remove logo
+        function removeLogo() {
+            businessSettings.logo = '';
+            localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
+            
+            // Save to Firebase
+            saveToFirebase('businessSettings', businessSettings);
+            
+            loadBusinessSettings();
+            document.getElementById('logoPreview').classList.add('hidden');
+            document.getElementById('logoFileInput').value = '';
+            selectedLogoFile = null;
+            showStatus('Logo removed.', 'info');
+        }
+
+        // Save data to Firebase (generic function)
+        function saveToFirebase(path, data) {
+            if (isOnline) {
+                return database.ref(path).set(data)
+                    .then(() => {
+                        console.log(`Data saved to Firebase: ${path}`);
+                        updateLastSyncTime();
+                        return true;
+                    })
+                    .catch((error) => {
+                        console.error(`Error saving to Firebase (${path}):`, error);
+                        return false;
+                    });
+            } else {
+                console.log('Offline - Data saved locally, will sync when online');
+                return Promise.resolve(false);
+            }
+        }
+
+        // Save business settings
+        function saveBusinessSettings(e) {
+            e.preventDefault();
+            
+            businessSettings.name = document.getElementById('businessNameInput').value;
+            businessSettings.contact = document.getElementById('contactDetails').value;
+            
+            localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
+            
+            // Save to Firebase
+            saveToFirebase('businessSettings', businessSettings);
+            
+            loadBusinessSettings();
+            showStatus('Business settings saved successfully!', 'success');
+        }
+
+        // Show status message
+        function showStatus(message, type) {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.textContent = message;
+            statusElement.className = 'status-message';
+            
+            if (type === 'success') {
+                statusElement.classList.add('status-success');
+            } else if (type === 'error') {
+                statusElement.classList.add('status-error');
+            } else if (type === 'info') {
+                statusElement.classList.add('status-info');
+            }
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                statusElement.textContent = '';
+                statusElement.className = '';
+            }, 5000);
+        }
+
+        // Force sync with Firebase
+        function forceSyncWithFirebase() {
+            if (!isOnline) {
+                showStatus('Cannot sync - You are offline', 'error');
+                return;
+            }
+
+            showStatus('Syncing data with Firebase...', 'info');
+            
+            Promise.all([
+                saveToFirebase('items', arrayToObject(items)),
+                saveToFirebase('bills', arrayToObject(bills)),
+                saveToFirebase('businessSettings', businessSettings)
+            ]).then((results) => {
+                if (results.every(result => result)) {
+                    showStatus('All data synced successfully with Firebase!', 'success');
+                    updateLastSyncTime();
+                } else {
+                    showStatus('Some data may not have synced properly.', 'warning');
+                }
+            }).catch((error) => {
+                console.error('Error syncing data with Firebase:', error);
+                showStatus('Error syncing data: ' + error.message, 'error');
+            });
+        }
+
+        // Convert array to object for Firebase
+        function arrayToObject(array) {
+            const obj = {};
+            array.forEach(item => {
+                obj[item.id] = item;
+            });
+            return obj;
+        }
+
+        // Export data
+        function exportData() {
+            const data = {
+                items: items,
+                bills: bills,
+                businessSettings: businessSettings,
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `mata-mae-business-data-${new Date().getTime()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showStatus('Data exported successfully!', 'success');
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear ALL data? This action cannot be undone.')) {
+                if (confirm('This will delete ALL items, bills, and settings. Are you absolutely sure?')) {
+                    items = [];
+                    bills = [];
+                    cart = [];
+                    businessSettings = {
+                        name: "Mata Mae Business",
+                        logo: "",
+                        contact: "123 Main Street, City, Country\nPhone: +94 77 123 4567\nEmail: info@matamae.lk"
+                    };
+                    
+                    localStorage.removeItem('items');
+                    localStorage.removeItem('bills');
+                    localStorage.removeItem('businessSettings');
+                    
+                    // Clear Firebase data
+                    if (isOnline) {
+                        database.ref('items').remove();
+                        database.ref('bills').remove();
+                        database.ref('businessSettings').remove();
+                    }
+                    
+                    // Reload the application
+                    location.reload();
+                }
+            }
+        }
+
+        // Update items display
+        function updateItemsDisplay() {
+            const itemsList = document.getElementById('itemsList');
+            itemsList.innerHTML = '';
+            
+            items.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.name}</td>
+                    <td>Rs. ${item.price.toFixed(2)}</td>
+                    <td>${item.stock}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning edit-item" data-index="${index}">Edit</button>
+                        <button class="btn btn-sm btn-danger delete-item" data-index="${index}">Delete</button>
+                    </td>
+                `;
+                itemsList.appendChild(row);
+            });
+            
+            // Add event listeners for edit and delete buttons
+            document.querySelectorAll('.edit-item').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    editItem(index);
+                });
+            });
+            
+            document.querySelectorAll('.delete-item').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    deleteItem(index);
+                });
+            });
+        }
+
+        // Update stock display
+        function updateStockDisplay() {
+            const stockTable = document.getElementById('stockTable');
+            stockTable.innerHTML = '';
+            
+            items.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.name}</td>
+                    <td>${item.stock}</td>
+                    <td>Rs. ${item.price.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary update-stock" data-index="${index}">Update Stock</button>
+                    </td>
+                `;
+                stockTable.appendChild(row);
+            });
+            
+            // Add event listeners for update stock buttons
+            document.querySelectorAll('.update-stock').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    updateStock(index);
+                });
+            });
+        }
+
+        // Update billing display
+        function updateBillingDisplay() {
+            const itemsTable = document.getElementById('itemsTable');
+            itemsTable.innerHTML = '';
+            
+            items.forEach((item, index) => {
+                if (item.stock > 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.name}</td>
+                        <td>Rs. ${item.price.toFixed(2)}</td>
+                        <td>${item.stock}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary add-to-cart" data-index="${index}">Add to Cart</button>
+                        </td>
+                    `;
+                    itemsTable.appendChild(row);
+                }
+            });
+            
+            // Add event listeners for add to cart buttons
+            document.querySelectorAll('.add-to-cart').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    addToCart(index);
+                });
+            });
+            
+            updateCartDisplay();
+        }
+
+        // Search items
+        function searchItems() {
+            const searchTerm = document.getElementById('searchItem').value.toLowerCase();
+            const itemsTable = document.getElementById('itemsTable');
+            itemsTable.innerHTML = '';
+            
+            const filteredItems = items.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) && item.stock > 0
+            );
+            
+            filteredItems.forEach((item, index) => {
+                const originalIndex = items.findIndex(i => i.id === item.id);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>Rs. ${item.price.toFixed(2)}</td>
+                    <td>${item.stock}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary add-to-cart" data-index="${originalIndex}">Add to Cart</button>
+                    </td>
+                `;
+                itemsTable.appendChild(row);
+            });
+            
+            // Add event listeners for add to cart buttons
+            document.querySelectorAll('.add-to-cart').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    addToCart(index);
+                });
+            });
+        }
+
+        // Add item to cart
+        function addToCart(index) {
+            const item = items[index];
+            
+            // Check if item is already in cart
+            const existingItem = cart.find(cartItem => cartItem.index === index);
+            
+            if (existingItem) {
+                if (existingItem.quantity < item.stock) {
+                    existingItem.quantity++;
+                } else {
+                    alert(`Only ${item.stock} units of ${item.name} available in stock.`);
+                    return;
+                }
+            } else {
+                if (item.stock > 0) {
+                    cart.push({
+                        index: index,
+                        name: item.name,
+                        price: item.price,
+                        quantity: 1
+                    });
+                } else {
+                    alert(`${item.name} is out of stock.`);
+                    return;
+                }
+            }
+            
+            updateCartDisplay();
+        }
+
+        // Update cart display
+        function updateCartDisplay() {
+            const cartItems = document.getElementById('cartItems');
+            cartItems.innerHTML = '';
+            
+            cart.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>
+                        <div class="input-group input-group-sm">
+                            <button class="btn btn-outline-secondary decrease-quantity" type="button" data-index="${index}">-</button>
+                            <input type="number" class="form-control text-center" value="${item.quantity}" min="1" max="${items[item.index].stock}" data-index="${index}">
+                            <button class="btn btn-outline-secondary increase-quantity" type="button" data-index="${index}">+</button>
+                        </div>
+                    </td>
+                    <td>Rs. ${item.price.toFixed(2)}</td>
+                    <td>Rs. ${(item.price * item.quantity).toFixed(2)}</td>
+                    <td><button class="btn btn-sm btn-danger remove-from-cart" data-index="${index}">Remove</button></td>
+                `;
+                cartItems.appendChild(row);
+            });
+            
+            // Add event listeners for cart controls
+            document.querySelectorAll('.decrease-quantity').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    decreaseQuantity(index);
+                });
+            });
+            
+            document.querySelectorAll('.increase-quantity').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    increaseQuantity(index);
+                });
+            });
+            
+            document.querySelectorAll('.remove-from-cart').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    removeFromCart(index);
+                });
+            });
+            
+            document.querySelectorAll('.cart-items input').forEach(input => {
+                input.addEventListener('change', function() {
+                    const index = this.getAttribute('data-index');
+                    updateQuantity(index, parseInt(this.value));
+                });
+            });
+            
+            updateCartTotal();
+        }
+
+        // Decrease item quantity in cart
+        function decreaseQuantity(index) {
+            if (cart[index].quantity > 1) {
+                cart[index].quantity--;
+                updateCartDisplay();
+            }
+        }
+
+        // Increase item quantity in cart
+        function increaseQuantity(index) {
+            const itemIndex = cart[index].index;
+            if (cart[index].quantity < items[itemIndex].stock) {
+                cart[index].quantity++;
+                updateCartDisplay();
+            } else {
+                alert(`Only ${items[itemIndex].stock} units of ${items[itemIndex].name} available in stock.`);
+            }
+        }
+
+        // Update item quantity in cart
+        function updateQuantity(index, newQuantity) {
+            const itemIndex = cart[index].index;
+            if (newQuantity > 0 && newQuantity <= items[itemIndex].stock) {
+                cart[index].quantity = newQuantity;
+                updateCartDisplay();
+            } else if (newQuantity > items[itemIndex].stock) {
+                alert(`Only ${items[itemIndex].stock} units of ${items[itemIndex].name} available in stock.`);
+                cart[index].quantity = items[itemIndex].stock;
+                updateCartDisplay();
+            }
+        }
+
+        // Remove item from cart
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartDisplay();
+        }
+
+        // Update cart total
+        function updateCartTotal() {
+            const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            const discount = parseFloat(document.getElementById('discount').value) || 0;
+            const finalAmount = subtotal - discount;
+            
+            document.getElementById('cartTotal').textContent = `Rs. ${subtotal.toFixed(2)}`;
+            document.getElementById('discountAmount').textContent = `Rs. ${discount.toFixed(2)}`;
+            document.getElementById('finalAmount').textContent = `Rs. ${finalAmount.toFixed(2)}`;
+        }
+
+        // Clear cart
+        function clearCart() {
+            if (confirm('Are you sure you want to clear the cart?')) {
+                cart = [];
+                document.getElementById('discount').value = 0;
+                updateCartDisplay();
+            }
+        }
+
+        // Generate bill
+        function generateBill() {
+            if (cart.length === 0) {
+                alert('Cart is empty. Please add items to generate a bill.');
+                return;
+            }
+            
+            const discount = parseFloat(document.getElementById('discount').value) || 0;
+            const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            const finalAmount = subtotal - discount;
+            
+            // Create bill object
+            const bill = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString(),
+                time: new Date().toLocaleTimeString(),
+                items: [...cart],
+                subtotal: subtotal,
+                discount: discount,
+                total: finalAmount
+            };
+            
+            // Update stock
+            cart.forEach(item => {
+                items[item.index].stock -= item.quantity;
+                
+                // Update item in Firebase
+                saveToFirebase(`items/${items[item.index].id}`, items[item.index]);
+            });
+            
+            // Save data to localStorage
+            localStorage.setItem('items', JSON.stringify(items));
+            bills.push(bill);
+            localStorage.setItem('bills', JSON.stringify(bills));
+            
+            // Save bill to Firebase
+            saveToFirebase(`bills/${bill.id}`, bill);
+            
+            // Show bill preview
+            showBillPreview(bill);
+            
+            // Clear cart
+            cart = [];
+            document.getElementById('discount').value = 0;
+            updateCartDisplay();
+            updateBillingDisplay();
+            updateStockDisplay();
+            updateDashboard();
+        }
+
+        // Show bill preview
+        function showBillPreview(bill) {
+            const billContent = document.getElementById('billContent');
+            
+            let itemsHtml = '';
+            bill.items.forEach(item => {
+                itemsHtml += `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>${item.quantity}</td>
+                        <td>Rs. ${item.price.toFixed(2)}</td>
+                        <td>Rs. ${(item.price * item.quantity).toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            
+            billContent.innerHTML = `
+                <div class="invoice-header">
+                    <div>
+                        <img src="${businessSettings.logo || '#'}" class="invoice-logo" alt="Business Logo">
+                        <h3>${businessSettings.name}</h3>
+                    </div>
+                    <div class="invoice-details">
+                        <h4>INVOICE</h4>
+                        <p><strong>Bill No:</strong> ${bill.id}</p>
+                        <p><strong>Date:</strong> ${bill.date}</p>
+                        <p><strong>Time:</strong> ${bill.time}</p>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <p>${businessSettings.contact.replace(/\n/g, '<br>')}</p>
+                </div>
+                
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                            <td><strong>Rs. ${bill.subtotal.toFixed(2)}</strong></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>Discount:</strong></td>
+                            <td><strong>Rs. ${bill.discount.toFixed(2)}</strong></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                            <td><strong>Rs. ${bill.total.toFixed(2)}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                
+                <div class="text-center mt-4">
+                    <p>Thank you for your business!</p>
+                </div>
+            `;
+            
+            // Show modal
+            const billModal = new bootstrap.Modal(document.getElementById('billPreviewModal'));
+            billModal.show();
+        }
+
+        // Print bill
+        function printBill() {
+            const billContent = document.getElementById('billContent').innerHTML;
+            const originalContent = document.body.innerHTML;
+            
+            document.body.innerHTML = billContent;
+            window.print();
+            document.body.innerHTML = originalContent;
+            
+            // Reinitialize the application
+            location.reload();
+        }
+
+        // Download PDF
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const billContent = document.getElementById('billContent');
+            
+            html2canvas(billContent).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 190;
+                const pageHeight = 280;
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                let heightLeft = imgHeight;
+                
+                let position = 10;
+                
+                doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    doc.addPage();
+                    doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                doc.save(`bill_${new Date().getTime()}.pdf`);
+            });
+        }
+
+        // Save new item
+        function saveItem() {
+            const name = document.getElementById('itemName').value;
+            const price = parseFloat(document.getElementById('itemPrice').value);
+            const stock = parseInt(document.getElementById('itemStock').value);
+            
+            if (name && !isNaN(price) && !isNaN(stock)) {
+                const newItem = {
+                    id: Date.now(),
+                    name: name,
+                    price: price,
+                    stock: stock
+                };
+                
+                items.push(newItem);
+                localStorage.setItem('items', JSON.stringify(items));
+                
+                // Save to Firebase
+                saveToFirebase(`items/${newItem.id}`, newItem);
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
+                modal.hide();
+                
+                // Reset form
+                document.getElementById('addItemForm').reset();
+                
+                // Update displays
+                updateItemsDisplay();
+                updateStockDisplay();
+                updateBillingDisplay();
+                updateDashboard();
+                
+                showStatus('Item added successfully!', 'success');
+            } else {
+                showStatus('Please fill all fields correctly.', 'error');
+            }
+        }
+
+        // Edit item
+        function editItem(index) {
+            const item = items[index];
+            const newName = prompt('Enter new name:', item.name);
+            if (newName === null) return;
+            
+            const newPrice = parseFloat(prompt('Enter new price:', item.price));
+            if (isNaN(newPrice)) {
+                alert('Invalid price entered.');
+                return;
+            }
+            
+            items[index].name = newName;
+            items[index].price = newPrice;
+            
+            localStorage.setItem('items', JSON.stringify(items));
+            
+            // Update in Firebase
+            saveToFirebase(`items/${item.id}`, items[index]);
+            
+            updateItemsDisplay();
+            updateStockDisplay();
+            updateBillingDisplay();
+            
+            showStatus('Item updated successfully!', 'success');
+        }
+
+        // Delete item
+        function deleteItem(index) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                const itemId = items[index].id;
+                items.splice(index, 1);
+                localStorage.setItem('items', JSON.stringify(items));
+                
+                // Delete from Firebase
+                if (isOnline) {
+                    database.ref(`items/${itemId}`).remove();
+                }
+                
+                updateItemsDisplay();
+                updateStockDisplay();
+                updateBillingDisplay();
+                updateDashboard();
+                
+                showStatus('Item deleted successfully!', 'success');
+            }
+        }
+
+        // Update stock
+        function updateStock(index) {
+            const item = items[index];
+            const newStock = parseInt(prompt(`Enter new stock for ${item.name}:`, item.stock));
+            
+            if (!isNaN(newStock) && newStock >= 0) {
+                items[index].stock = newStock;
+                localStorage.setItem('items', JSON.stringify(items));
+                
+                // Update in Firebase
+                saveToFirebase(`items/${item.id}`, items[index]);
+                
+                updateStockDisplay();
+                updateBillingDisplay();
+                updateDashboard();
+                
+                showStatus('Stock updated successfully!', 'success');
+            } else {
+                showStatus('Invalid stock value entered.', 'error');
+            }
+        }
+
+        // Update dashboard
+        function updateDashboard() {
+            // Total items
+            document.getElementById('totalItems').textContent = items.length;
+            
+            // Today's sales
+            const today = new Date().toLocaleDateString();
+            const todayBills = bills.filter(bill => bill.date === today);
+            const todaySales = todayBills.reduce((total, bill) => total + bill.total, 0);
+            document.getElementById('todaySales').textContent = `Rs. ${todaySales.toFixed(2)}`;
+            
+            // Low stock items (less than 10)
+            const lowStockItems = items.filter(item => item.stock > 0 && item.stock < 10);
+            document.getElementById('lowStockItems').textContent = lowStockItems.length;
+            
+            // Out of stock items
+            const outOfStockItems = items.filter(item => item.stock === 0);
+            document.getElementById('outOfStock').textContent = outOfStockItems.length;
+            
+            // Recent bills
+            const recentBills = document.getElementById('recentBills');
+            recentBills.innerHTML = '';
+            
+            const sortedBills = [...bills].sort((a, b) => b.id - a.id).slice(0, 5);
+            sortedBills.forEach(bill => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${bill.id}</td>
+                    <td>${bill.date}</td>
+                    <td>Rs. ${bill.total.toFixed(2)}</td>
+                `;
+                recentBills.appendChild(row);
+            });
+            
+            // Low stock table
+            const lowStockTable = document.getElementById('lowStockTable');
+            lowStockTable.innerHTML = '';
+            
+            lowStockItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.stock}</td>
+                `;
+                lowStockTable.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
