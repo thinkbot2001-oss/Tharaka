@@ -3,1695 +3,2807 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mata Mae Business - Billing System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Stationary Shop POS System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Include jsPDF and html2canvas libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
+    <!-- Include Chart.js for advanced charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
-    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --accent-color: #e74c3c;
-            --light-color: #ecf0f1;
+            --primary-blue: #1a365d;
+            --secondary-blue: #2d3748;
+            --accent-blue: #3182ce;
+            --light-blue: #4299e1;
+            --light-gray: #f7fafc;
+            --white: #ffffff;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #f56565;
+            --purple: #9f7aea;
+            --sidebar-width: 250px;
+            --sidebar-collapsed: 70px;
         }
-        
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
+            background-color: #edf2f7;
+            color: #2d3748;
+            overflow-x: hidden;
         }
-        
-        .sidebar {
-            background-color: var(--primary-color);
-            color: white;
-            height: 100vh;
-            position: fixed;
-            padding-top: 20px;
-            width: 250px;
-        }
-        
-        .sidebar a {
-            color: white;
-            text-decoration: none;
-            display: block;
-            padding: 10px 15px;
-            margin: 5px 0;
-            border-radius: 5px;
-            transition: all 0.3s;
-        }
-        
-        .sidebar a:hover {
-            background-color: var(--secondary-color);
-        }
-        
-        .sidebar a.active {
-            background-color: var(--secondary-color);
-        }
-        
-        .main-content {
-            margin-left: 250px;
-            padding: 20px;
-        }
-        
-        .card {
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border: none;
-            margin-bottom: 20px;
-        }
-        
-        .card-header {
-            background-color: var(--primary-color);
-            color: white;
-            font-weight: bold;
-        }
-        
-        .btn-primary {
-            background-color: var(--secondary-color);
-            border: none;
-        }
-        
-        .btn-danger {
-            background-color: var(--accent-color);
-            border: none;
-        }
-        
-        .table th {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .logo-container {
-            text-align: center;
-            padding: 20px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 20px;
-        }
-        
-        .logo {
-            max-width: 150px;
-            max-height: 80px;
-            border-radius: 8px;
-            object-fit: contain;
-        }
-        
-        .business-name {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        
-        .invoice-header {
+
+        .app-container {
             display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+            color: var(--white);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+            box-shadow: 3px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            display: flex;
+            align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
-        .invoice-logo {
-            max-width: 150px;
-            max-height: 80px;
+
+        .business-logo {
+            width: 40px;
+            height: 40px;
+            background: var(--light-blue);
             border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+            margin-right: 15px;
         }
-        
-        .invoice-details {
-            text-align: right;
+
+        .business-name {
+            font-size: 18px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
         }
-        
-        .hidden {
+
+        .sidebar.collapsed .business-name {
             display: none;
         }
-        
-        .tab-content {
-            padding: 20px 0;
-        }
-        
-        .logo-upload-container {
-            border: 2px dashed #ccc;
-            padding: 20px;
-            text-align: center;
-            border-radius: 8px;
-            margin-bottom: 15px;
+
+        .toggle-sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.3s;
         }
-        
-        .logo-upload-container:hover {
-            border-color: var(--secondary-color);
-            background-color: #f8f9fa;
+
+        .toggle-sidebar:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
-        
-        .logo-preview {
-            max-width: 200px;
-            max-height: 120px;
-            margin: 10px auto;
-            display: block;
-            border-radius: 8px;
+
+        .sidebar-menu {
+            padding: 20px 0;
         }
-        
-        .upload-icon {
-            font-size: 48px;
-            color: #6c757d;
-            margin-bottom: 10px;
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            transition: all 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
         }
-        
-        .status-message {
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
         }
-        
-        .status-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+
+        .menu-item.active {
+            background: var(--accent-blue);
+            color: white;
+            border-right: 4px solid white;
         }
-        
-        .status-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+
+        .menu-item i {
+            width: 24px;
+            margin-right: 15px;
+            font-size: 18px;
         }
-        
-        .status-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+
+        .sidebar.collapsed .menu-item span {
+            display: none;
         }
-        
-        .firebase-status {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            z-index: 1000;
+
+        .sidebar.collapsed .menu-item {
+            justify-content: center;
         }
-        
-        .status-online {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+
+        .sidebar.collapsed .menu-item i {
+            margin-right: 0;
+            font-size: 20px;
         }
-        
-        .status-offline {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 100vh;
         }
-        
-        .sync-indicator {
-            display: inline-block;
+
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed);
+        }
+
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar-left h1 {
+            font-size: 24px;
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .connection-status.connected {
+            background-color: rgba(72, 187, 120, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(72, 187, 120, 0.2);
+        }
+
+        .connection-status.disconnected {
+            background-color: rgba(245, 101, 101, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(245, 101, 101, 0.2);
+        }
+
+        .connection-dot {
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            margin-right: 5px;
+            display: inline-block;
         }
-        
-        .sync-green {
-            background-color: #28a745;
+
+        .connection-dot.connected {
+            background-color: var(--success);
+            animation: pulse 2s infinite;
         }
-        
-        .sync-red {
-            background-color: #dc3545;
+
+        .connection-dot.disconnected {
+            background-color: var(--danger);
         }
-        
-        .sync-yellow {
-            background-color: #ffc107;
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
+
+        .content-area {
+            padding: 30px;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+            color: white;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Analytics Dashboard */
+        .analytics-dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .dashboard-controls {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .date-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .date-filter-group label {
+            font-weight: 600;
+            color: var(--secondary-blue);
+        }
+
+        .date-input {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            background: var(--light-blue);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card i {
+            font-size: 28px;
+            color: var(--accent-blue);
+            margin-bottom: 15px;
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 5px;
+        }
+
+        .stat-card .subtext {
+            font-size: 14px;
+            color: #718096;
+        }
+
+        /* Forms */
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-title {
+            font-size: 20px;
+            color: var(--primary-blue);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--secondary-blue);
+            font-size: 14px;
+        }
+
+        .form-control {
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--light-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(49, 130, 206, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn-secondary {
+            background: #a0aec0;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #718096;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #dd6b20;
+        }
+
+        .btn-purple {
+            background: var(--purple);
+            color: white;
+        }
+
+        .btn-purple:hover {
+            background: #805ad5;
+        }
+
+        /* Search and Filter */
+        .search-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-box {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            flex: 1;
+            transition: all 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        /* Product Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            border: 1px solid #e2e8f0;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent-blue);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .product-info {
+            padding: 20px;
+        }
+
+        .product-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+        }
+
+        .product-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .product-price {
+            color: var(--success);
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .product-stock {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .product-stock.low {
+            color: var(--warning);
+            font-weight: 600;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Selling Section */
+        .customer-form-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .customer-form-title {
+            font-size: 20px;
+            color: var(--primary-blue);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .customer-form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .selling-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .selling-container {
+                grid-template-columns: 1fr;
             }
-            .main-content {
-                margin-left: 0;
+        }
+
+        .products-panel, .cart-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .cart-items {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .cart-item-qty {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .qty-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .qty-btn:hover {
+            background: #f7fafc;
+            border-color: var(--accent-blue);
+        }
+
+        .cart-item-price {
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .cart-summary {
+            border-top: 2px solid #e2e8f0;
+            padding-top: 20px;
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .cart-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Bills Table */
+        .bills-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .bills-table th {
+            background: var(--primary-blue);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .bills-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .bills-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+        .action-btn.view {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .action-btn.view:hover {
+            background: var(--light-blue);
+        }
+
+        /* Admin Settings */
+        .admin-settings {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .settings-group {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .settings-group:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .settings-group h3 {
+            font-size: 18px;
+            color: var(--primary-blue);
+            margin-bottom: 20px;
+        }
+
+        /* Export Section */
+        .export-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .export-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .date-range {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 3000;
+            animation: slideInRight 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification.success {
+            background: var(--success);
+        }
+
+        .notification.error {
+            background: var(--danger);
+        }
+
+        .notification.info {
+            background: var(--accent-blue);
+        }
+
+        .notification.warning {
+            background: var(--warning);
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Bill Modal Styles */
+        .bill-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .bill-modal.active {
+            display: flex;
+        }
+
+        .bill-container {
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .bill-header {
+            background: var(--primary-blue);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bill-header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .bill-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .bill-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .bill-content {
+            padding: 30px;
+        }
+
+        .bill-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .bill-info-section h3 {
+            margin: 0 0 15px 0;
+            color: var(--primary-blue);
+            font-size: 18px;
+        }
+
+        .bill-info-item {
+            margin-bottom: 8px;
+            display: flex;
+        }
+
+        .bill-info-label {
+            font-weight: 600;
+            width: 120px;
+            color: #4a5568;
+        }
+
+        .bill-info-value {
+            flex: 1;
+        }
+
+        .bill-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .bill-items-table th {
+            background: var(--primary-blue);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .bill-items-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .bill-items-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .bill-items-table .text-right {
+            text-align: right;
+        }
+
+        .bill-items-table .text-center {
+            text-align: center;
+        }
+
+        .bill-summary {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .bill-summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 16px;
+        }
+
+        .bill-summary-row.total {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            border-top: 2px solid #e2e8f0;
+            margin-top: 10px;
+            padding-top: 15px;
+        }
+
+        .bill-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px dashed #cbd5e0;
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .bill-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 0 0 12px 12px;
+        }
+
+        /* Print Styles */
+        @media print {
+            .bill-modal {
+                position: static;
+                background: white;
             }
+            
+            .bill-container {
+                max-width: 100%;
+                max-height: none;
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .bill-close,
+            .bill-actions {
+                display: none !important;
+            }
+        }
+
+        /* Bill in Bill History */
+        .bill-history-item {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .bill-history-item:hover {
+            border-color: var(--accent-blue);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .bill-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .bill-history-number {
+            font-weight: 700;
+            color: var(--primary-blue);
+            font-size: 18px;
+        }
+
+        .bill-history-date {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .bill-history-customer {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .bill-history-amount {
+            text-align: right;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .action-btn.print {
+            background: var(--success);
+            color: white;
+        }
+
+        .action-btn.print:hover {
+            background: #38a169;
         }
     </style>
 </head>
 <body>
-    <div id="firebaseStatus" class="firebase-status status-offline">
-        <span class="sync-indicator sync-red"></span> Offline
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div id="loadingText">Initializing System...</div>
     </div>
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-2 sidebar">
-                <div class="logo-container">
-                    <img src="#" id="businessLogo" class="logo" alt="Business Logo">
-                    <div class="business-name" id="businessName">Mata Mae Business</div>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div style="display: flex; align-items: center;">
+                    <div class="business-logo" id="businessLogo">S</div>
+                    <div class="business-name" id="businessName">Stationary Pro</div>
                 </div>
-                <a href="#" class="active" data-tab="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-                <a href="#" data-tab="billing"><i class="fas fa-shopping-cart"></i> Billing</a>
-                <a href="#" data-tab="items"><i class="fas fa-box"></i> Items</a>
-                <a href="#" data-tab="stock"><i class="fas fa-warehouse"></i> Stock</a>
-                <a href="#" data-tab="admin"><i class="fas fa-cog"></i> Admin Panel</a>
+                <button class="toggle-sidebar" id="toggleSidebar">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
             </div>
+            
+            <div class="sidebar-menu">
+                <a href="#" class="menu-item active" data-tab="analytics">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Analytics Dashboard</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="products">
+                    <i class="fas fa-boxes"></i>
+                    <span>Products</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="add-product">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Add Product</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="selling">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Selling</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="bills">
+                    <i class="fas fa-receipt"></i>
+                    <span>Bills History</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="admin">
+                    <i class="fas fa-cog"></i>
+                    <span>Admin Settings</span>
+                </a>
+            </div>
+        </div>
 
-            <!-- Main Content -->
-            <div class="col-md-10 main-content">
-                <!-- Dashboard Tab -->
-                <div id="dashboard" class="tab-content">
-                    <h2>Dashboard <small class="text-muted" id="syncStatus">Loading...</small></h2>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="card text-white bg-primary">
-                                <div class="card-body">
-                                    <h5 class="card-title">Total Items</h5>
-                                    <p class="card-text display-4" id="totalItems">0</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card text-white bg-success">
-                                <div class="card-body">
-                                    <h5 class="card-title">Today's Sales</h5>
-                                    <p class="card-text display-4" id="todaySales">Rs. 0</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card text-white bg-warning">
-                                <div class="card-body">
-                                    <h5 class="card-title">Low Stock Items</h5>
-                                    <p class="card-text display-4" id="lowStockItems">0</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card text-white bg-danger">
-                                <div class="card-body">
-                                    <h5 class="card-title">Out of Stock</h5>
-                                    <p class="card-text display-4" id="outOfStock">0</p>
-                                </div>
-                            </div>
-                        </div>
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <div class="top-bar">
+                <div class="top-bar-left">
+                    <h1 id="pageTitle">Analytics Dashboard</h1>
+                </div>
+                <div class="top-bar-right">
+                    <!-- Connection Status -->
+                    <div class="connection-status disconnected" id="connectionStatus">
+                        <span class="connection-dot disconnected" id="connectionDot"></span>
+                        <span id="connectionText">Offline</span>
                     </div>
                     
-                    <div class="row mt-4">
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">Recent Bills</div>
-                                <div class="card-body">
-                                    <table class="table table-striped">
-                                        <thead>
-                                            <tr>
-                                                <th>Bill No</th>
-                                                <th>Date</th>
-                                                <th>Amount</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="recentBills">
-                                            <!-- Recent bills will be populated here -->
-                                        </tbody>
-                                    </table>
+                    <div class="user-profile">
+                        <div class="user-avatar">A</div>
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <!-- Analytics Dashboard Tab -->
+                <div id="analytics" class="tab-content active">
+                    <div class="analytics-dashboard">
+                        <div class="dashboard-controls">
+                            <div class="date-filter-group">
+                                <label>Date Range:</label>
+                                <input type="date" id="analyticsFromDate" class="date-input">
+                                <span>to</span>
+                                <input type="date" id="analyticsToDate" class="date-input">
+                                <button class="filter-btn" onclick="updateAnalytics()">
+                                    <i class="fas fa-filter"></i> Apply Filter
+                                </button>
+                                <button class="btn btn-secondary" onclick="resetAnalyticsFilter()">
+                                    <i class="fas fa-redo"></i> Reset
+                                </button>
+                            </div>
+                            <div style="margin-left: auto;">
+                                <button class="btn btn-purple" onclick="exportAnalyticsReport()">
+                                    <i class="fas fa-download"></i> Export Report
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-grid">
+                            <div class="stat-card">
+                                <i class="fas fa-dollar-sign"></i>
+                                <h3>Total Revenue</h3>
+                                <div class="value" id="totalRevenue">Rs 0.00</div>
+                                <div class="subtext" id="revenueChange">No data available</div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-shopping-cart"></i>
+                                <h3>Total Orders</h3>
+                                <div class="value" id="totalOrders">0</div>
+                                <div class="subtext" id="ordersChange">No data available</div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-cube"></i>
+                                <h3>Products Sold</h3>
+                                <div class="value" id="productsSold">0</div>
+                                <div class="subtext" id="productsChange">No data available</div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-users"></i>
+                                <h3>Average Order Value</h3>
+                                <div class="value" id="avgOrderValue">Rs 0.00</div>
+                                <div class="subtext" id="aovChange">No data available</div>
+                            </div>
+                        </div>
+
+                        <!-- Charts will be loaded here -->
+                        <div id="chartsContainer">
+                            <div style="text-align: center; padding: 50px; color: #718096;">
+                                <i class="fas fa-chart-bar" style="font-size: 48px; margin-bottom: 20px;"></i>
+                                <div>Charts will appear here when data is available</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Tab -->
+                <div id="products" class="tab-content">
+                    <div class="search-container">
+                        <input type="text" class="search-box" id="productSearch" placeholder="Search products...">
+                        <select class="filter-select" id="stockFilter">
+                            <option value="">All Stock</option>
+                            <option value="low">Low Stock (&lt;20)</option>
+                            <option value="out">Out of Stock</option>
+                            <option value="in">In Stock</option>
+                        </select>
+                    </div>
+                    <div class="products-grid" id="productGrid">
+                        <div style="grid-column:1/-1; text-align:center; padding:40px; color:#718096;">
+                            <i class="fas fa-boxes" style="font-size: 48px; margin-bottom: 20px;"></i>
+                            <div>No products found</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Product Tab -->
+                <div id="add-product" class="tab-content">
+                    <div class="form-section">
+                        <h2 class="form-title">Add New Product</h2>
+                        <form id="addProductForm">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="productId">Product ID *</label>
+                                    <input type="text" id="productId" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="productName">Product Name *</label>
+                                    <input type="text" id="productName" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="productPrice">Price (Rs) *</label>
+                                    <input type="number" id="productPrice" class="form-control" step="0.01" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="productStock">Stock Quantity *</label>
+                                    <input type="number" id="productStock" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="productDescription">Description</label>
+                                    <textarea id="productDescription" class="form-control" rows="3"></textarea>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Add Product
+                                </button>
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-redo"></i> Clear Form
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Selling Tab -->
+                <div id="selling" class="tab-content">
+                    <div class="customer-form-section">
+                        <h3 class="customer-form-title">Customer Information</h3>
+                        <div class="customer-form-grid">
+                            <div class="form-group">
+                                <label for="customerName">Customer Name *</label>
+                                <input type="text" id="customerName" class="form-control" placeholder="Enter customer name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="customerMobile">Mobile Number *</label>
+                                <input type="tel" id="customerMobile" class="form-control" placeholder="Enter mobile number" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="customerAddress">Address</label>
+                                <textarea id="customerAddress" class="form-control" rows="2" placeholder="Enter customer address"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="selling-container">
+                        <div class="products-panel">
+                            <h2 style="color: var(--primary-blue); margin-bottom: 20px;">Available Products</h2>
+                            <div class="search-container">
+                                <input type="text" class="search-box" id="sellingSearch" placeholder="Search products...">
+                            </div>
+                            <div class="products-grid" id="sellingProductGrid" style="overflow-y: auto; max-height: 500px;">
+                                <div style="text-align:center; padding:40px; color:#718096;">
+                                    <i class="fas fa-boxes" style="font-size: 48px; margin-bottom: 20px;"></i>
+                                    <div>No products found</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">Low Stock Alert</div>
-                                <div class="card-body">
-                                    <table class="table table-striped">
-                                        <thead>
-                                            <tr>
-                                                <th>Item Name</th>
-                                                <th>Current Stock</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="lowStockTable">
-                                            <!-- Low stock items will be populated here -->
-                                        </tbody>
-                                    </table>
+                        <div class="cart-panel">
+                            <h2 style="color: var(--primary-blue); margin-bottom: 20px;">Shopping Cart</h2>
+                            <div class="cart-items" id="cartItems">
+                                <div style="text-align: center; color: #718096; padding: 40px 0;">
+                                    <i class="fas fa-shopping-cart" style="font-size: 48px; margin-bottom: 15px;"></i>
+                                    <div>Your cart is empty</div>
+                                </div>
+                            </div>
+                            <div class="cart-summary">
+                                <div class="cart-total">
+                                    <span>Total:</span>
+                                    <span id="cartTotal">Rs 0.00</span>
+                                </div>
+                                <div class="cart-actions">
+                                    <button class="btn btn-success" id="checkoutBtn">
+                                        <i class="fas fa-credit-card"></i> Checkout
+                                    </button>
+                                    <button class="btn btn-danger" id="clearCartBtn">
+                                        <i class="fas fa-trash"></i> Clear Cart
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Billing Tab -->
-                <div id="billing" class="tab-content hidden">
-                    <h2>Billing</h2>
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-header">Add Items to Bill</div>
-                                <div class="card-body">
-                                    <div class="input-group mb-3">
-                                        <input type="text" class="form-control" id="searchItem" placeholder="Search items...">
-                                        <button class="btn btn-primary" type="button" id="searchBtn">Search</button>
-                                    </div>
-                                    <div class="table-responsive">
-                                        <table class="table table-striped">
-                                            <thead>
-                                                <tr>
-                                                    <th>Item Name</th>
-                                                    <th>Price (Rs.)</th>
-                                                    <th>Stock</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="itemsTable">
-                                                <!-- Items will be populated here -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
+                <!-- Bills History Tab -->
+                <div id="bills" class="tab-content">
+                    <div class="export-section">
+                        <h3 style="color: var(--primary-blue); margin-bottom: 15px;">Export Bill History</h3>
+                        <div class="export-controls">
+                            <div class="date-range">
+                                <label style="font-weight: 600;">From:</label>
+                                <input type="date" id="exportFromDate" class="form-control">
+                                <label style="font-weight: 600;">To:</label>
+                                <input type="date" id="exportToDate" class="form-control">
                             </div>
+                            <button class="btn btn-primary" onclick="exportBillsToCSV()">
+                                <i class="fas fa-file-csv"></i> Export to CSV
+                            </button>
+                            <button class="btn btn-danger" onclick="exportAllBillsPDF()">
+                                <i class="fas fa-file-pdf"></i> Export to PDF
+                            </button>
                         </div>
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header">Current Bill</div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-striped">
-                                            <thead>
-                                                <tr>
-                                                    <th>Item</th>
-                                                    <th>Qty</th>
-                                                    <th>Price</th>
-                                                    <th>Total</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="cartItems">
-                                                <!-- Cart items will be populated here -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="discount" class="form-label">Discount (Rs.)</label>
-                                        <input type="number" class="form-control" id="discount" value="0" min="0">
-                                    </div>
-                                    <div class="d-grid gap-2">
-                                        <button class="btn btn-success" id="generateBill">Generate Bill</button>
-                                        <button class="btn btn-secondary" id="clearCart">Clear Cart</button>
-                                    </div>
-                                </div>
-                                <div class="card-footer">
-                                    <div class="d-flex justify-content-between">
-                                        <strong>Total:</strong>
-                                        <span id="cartTotal">Rs. 0.00</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <strong>Discount:</strong>
-                                        <span id="discountAmount">Rs. 0.00</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <strong>Final Amount:</strong>
-                                        <span id="finalAmount">Rs. 0.00</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    </div>
+
+                    <div class="search-container">
+                        <input type="date" class="search-box" id="billDateFilter">
+                        <select class="filter-select" id="billSort">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="highest">Highest Amount</option>
+                            <option value="lowest">Lowest Amount</option>
+                        </select>
+                    </div>
+
+                    <div class="form-section">
+                        <table class="bills-table">
+                            <thead>
+                                <tr>
+                                    <th>Bill No</th>
+                                    <th>Date & Time</th>
+                                    <th>Customer Name</th>
+                                    <th>Mobile</th>
+                                    <th>Total Amount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="billsBody">
+                                <tr><td colspan="6" style="text-align: center; padding: 40px;">No bills found</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <!-- Items Tab -->
-                <div id="items" class="tab-content hidden">
-                    <h2>Items Management</h2>
-                    <div class="card">
-                        <div class="card-header">
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addItemModal">Add New Item</button>
-                        </div>
-                        <div class="card-body">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Item Name</th>
-                                        <th>Price (Rs.)</th>
-                                        <th>Stock</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="itemsList">
-                                    <!-- Items will be populated here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stock Tab -->
-                <div id="stock" class="tab-content hidden">
-                    <h2>Stock Management</h2>
-                    <div class="card">
-                        <div class="card-header">Current Stock</div>
-                        <div class="card-body">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Item Name</th>
-                                        <th>Current Stock</th>
-                                        <th>Price (Rs.)</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="stockTable">
-                                    <!-- Stock items will be populated here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Admin Panel Tab -->
-                <div id="admin" class="tab-content hidden">
-                    <h2>Admin Panel</h2>
-                    <div class="card">
-                        <div class="card-header">Business Settings</div>
-                        <div class="card-body">
-                            <form id="businessSettings">
-                                <div class="mb-3">
-                                    <label for="businessNameInput" class="form-label">Business Name</label>
-                                    <input type="text" class="form-control" id="businessNameInput" value="Mata Mae Business">
+                <!-- Admin Settings Tab -->
+                <div id="admin" class="tab-content">
+                    <div class="admin-settings">
+                        <div class="settings-group">
+                            <h3>Business Information</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="businessNameInput">Business Name</label>
+                                    <input type="text" id="businessNameInput" class="form-control">
                                 </div>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label">Business Logo</label>
-                                    <div class="logo-upload-container" id="logoUploadArea">
-                                        <div class="upload-icon">
-                                            <i class="fas fa-cloud-upload-alt"></i>
-                                        </div>
-                                        <p>Click to upload or drag and drop</p>
-                                        <p class="text-muted">PNG, JPG, JPEG up to 5MB</p>
-                                        <img id="logoPreview" class="logo-preview hidden" alt="Logo preview">
-                                    </div>
-                                    <input type="file" id="logoFileInput" accept="image/png, image/jpeg, image/jpg" class="hidden">
-                                    <div class="d-flex gap-2 mt-2">
-                                        <button type="button" class="btn btn-primary btn-sm" id="uploadLogoBtn">Upload Logo</button>
-                                        <button type="button" class="btn btn-secondary btn-sm" id="removeLogoBtn">Remove Logo</button>
-                                    </div>
+                                <div class="form-group">
+                                    <label for="businessAddress">Business Address</label>
+                                    <textarea id="businessAddress" class="form-control" rows="2"></textarea>
                                 </div>
-                                
-                                <div class="mb-3">
-                                    <label for="contactDetails" class="form-label">Contact Details</label>
-                                    <textarea class="form-control" id="contactDetails" rows="3">123 Main Street, City, Country\nPhone: +94 77 123 4567\nEmail: info@matamae.lk</textarea>
+                                <div class="form-group">
+                                    <label for="businessPhone">Phone Number</label>
+                                    <input type="tel" id="businessPhone" class="form-control">
                                 </div>
-                                <button type="submit" class="btn btn-primary">Save Settings</button>
-                            </form>
-                            <div id="statusMessage" class="mt-3"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="card mt-4">
-                        <div class="card-header">Data Management</div>
-                        <div class="card-body">
-                            <div class="d-grid gap-2 d-md-block">
-                                <button class="btn btn-info" id="syncDataBtn">Force Sync with Firebase</button>
-                                <button class="btn btn-warning" id="exportDataBtn">Export Data</button>
-                                <button class="btn btn-danger" id="clearDataBtn">Clear All Data</button>
+                                <div class="form-group">
+                                    <label for="businessEmail">Email Address</label>
+                                    <input type="email" id="businessEmail" class="form-control">
+                                </div>
                             </div>
-                            <div class="mt-3">
-                                <small class="text-muted">Last Sync: <span id="lastSyncTime">Never</span></small>
+                        </div>
+
+                        <div class="settings-group">
+                            <h3>Receipt Settings</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="receiptFooter">Receipt Footer Text</label>
+                                    <textarea id="receiptFooter" class="form-control" rows="2">Thank you for your business!</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taxRate">Tax Rate (%)</label>
+                                    <input type="number" id="taxRate" class="form-control" value="8" step="0.1">
+                                </div>
                             </div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary" onclick="saveSettings()">
+                                <i class="fas fa-save"></i> Save Settings
+                            </button>
+                            <button class="btn btn-warning" onclick="clearAllData()">
+                                <i class="fas fa-trash"></i> Clear All Data
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Add Item Modal -->
-    <div class="modal fade" id="addItemModal" tabindex="-1" aria-labelledby="addItemModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addItemModalLabel">Add New Item</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <!-- Bill Modal -->
+        <div class="bill-modal" id="billModal">
+            <div class="bill-container">
+                <div class="bill-header">
+                    <h2 id="billModalTitle">Invoice</h2>
+                    <button class="bill-close" onclick="closeBillModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <div class="modal-body">
-                    <form id="addItemForm">
-                        <div class="mb-3">
-                            <label for="itemName" class="form-label">Item Name</label>
-                            <input type="text" class="form-control" id="itemName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="itemPrice" class="form-label">Price (Rs.)</label>
-                            <input type="number" class="form-control" id="itemPrice" min="0" step="0.01" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="itemStock" class="form-label">Initial Stock</label>
-                            <input type="number" class="form-control" id="itemStock" min="0" required>
-                        </div>
-                    </form>
+                
+                <div class="bill-content" id="billContent">
+                    <!-- Bill content will be loaded here -->
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="saveItem">Save Item</button>
+                
+                <div class="bill-actions">
+                    <button class="btn btn-primary" onclick="printBill()">
+                        <i class="fas fa-print"></i> Print Bill
+                    </button>
+                    <button class="btn btn-secondary" onclick="closeBillModal()">
+                        <i class="fas fa-times"></i> Close
+                    </button>
                 </div>
             </div>
         </div>
+
+        <!-- Notification Container -->
+        <div id="notificationContainer"></div>
     </div>
 
-    <!-- Bill Preview Modal -->
-    <div class="modal fade" id="billPreviewModal" tabindex="-1" aria-labelledby="billPreviewModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="billPreviewModalLabel">Bill Preview</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="billContent">
-                        <!-- Bill content will be populated here -->
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="printBill">Print Bill</button>
-                    <button type="button" class="btn btn-success" id="downloadPDF">Download as PDF</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyCAdozUt_tmGAMMw_TiQ7_mm8-_MKKoicU",
-            authDomain: "tharaka-3bf9b.firebaseapp.com",
-            databaseURL: "https://tharaka-3bf9b-default-rtdb.firebaseio.com",
-            projectId: "tharaka-3bf9b",
-            storageBucket: "tharaka-3bf9b.firebasestorage.app",
-            messagingSenderId: "337234919689",
-            appId: "1:337234919689:web:13bc866070e0f79845d3d8",
-            measurementId: "G-PQEQVW5DLG"
+            apiKey: "AIzaSyAdRs5fVXule7aa3-f7-uq7IGg8WUBhNIs",
+            authDomain: "tharusha-11f4a.firebaseapp.com",
+            databaseURL: "https://tharusha-11f4a-default-rtdb.firebaseio.com",
+            projectId: "tharusha-11f4a",
+            storageBucket: "tharusha-11f4a.firebasestorage.app",
+            messagingSenderId: "1055494912450",
+            appId: "1:1055494912450:web:649a8c27b137d8c0d0fe5b"
         };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
-        const storage = firebase.storage();
 
         // Initialize data
-        let items = [];
+        let products = [];
         let bills = [];
         let cart = [];
-        let businessSettings = {
-            name: "Mata Mae Business",
-            logo: "",
-            contact: "123 Main Street, City, Country\nPhone: +94 77 123 4567\nEmail: info@matamae.lk"
+        let settings = {
+            businessName: "Stationary Pro",
+            businessAddress: "123 Main Street, City",
+            businessPhone: "(123) 456-7890",
+            businessEmail: "info@stationarypro.com",
+            logo: null,
+            receiptFooter: "Thank you for your business!",
+            taxRate: 8
         };
-        
-        let selectedLogoFile = null;
-        let isOnline = false;
+
+        // Connection state
+        let isConnected = false;
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
-            // Set up event listeners
-            setupEventListeners();
+            console.log("Initializing POS System...");
+            showLoading("Initializing System...");
             
-            // Initialize Firebase connection
-            initializeFirebase();
+            initSidebar();
+            initNavigation();
+            initForms();
             
-            // Show dashboard by default
-            showTab('dashboard');
+            // Setup connection monitoring
+            setupConnectionMonitoring();
+            
+            // Load data
+            loadData();
+            
+            // Hide loading after 2 seconds
+            setTimeout(() => {
+                hideLoading();
+            }, 2000);
         });
 
-        // Initialize Firebase Realtime Database
-        function initializeFirebase() {
-            updateFirebaseStatus('Connecting to Firebase...', 'yellow');
-            
-            // Set up connection state listener
+        // Setup connection monitoring
+        function setupConnectionMonitoring() {
             const connectedRef = database.ref(".info/connected");
+            
             connectedRef.on("value", function(snap) {
-                isOnline = snap.val() === true;
-                if (isOnline) {
-                    updateFirebaseStatus('Connected to Firebase', 'green');
-                    loadAllDataFromFirebase();
+                isConnected = snap.val() === true;
+                updateConnectionStatus(isConnected);
+                
+                if (isConnected) {
+                    console.log("✅ Connected to Firebase");
+                    showNotification("Connected to server", "success");
                 } else {
-                    updateFirebaseStatus('Offline - Changes will sync when online', 'red');
-                    loadFromLocalStorage();
+                    console.log("❌ Disconnected from Firebase");
+                    showNotification("Working offline", "warning");
                 }
             });
-
-            // Set up data change listeners for real-time updates
-            setupRealtimeListeners();
         }
 
-        // Set up real-time listeners for data changes
-        function setupRealtimeListeners() {
-            // Listen for items changes
-            database.ref('items').on('value', (snapshot) => {
-                const firebaseItems = snapshot.val();
-                if (firebaseItems) {
-                    items = Object.values(firebaseItems);
-                    localStorage.setItem('items', JSON.stringify(items));
-                    updateItemsDisplay();
-                    updateStockDisplay();
-                    updateBillingDisplay();
-                    updateDashboard();
-                }
-            });
+        // Update connection status UI
+        function updateConnectionStatus(connected) {
+            const status = document.getElementById('connectionStatus');
+            const dot = document.getElementById('connectionDot');
+            const text = document.getElementById('connectionText');
+            
+            if (connected) {
+                status.className = 'connection-status connected';
+                dot.className = 'connection-dot connected';
+                text.textContent = 'Online';
+            } else {
+                status.className = 'connection-status disconnected';
+                dot.className = 'connection-dot disconnected';
+                text.textContent = 'Offline';
+            }
+        }
 
-            // Listen for bills changes
-            database.ref('bills').on('value', (snapshot) => {
-                const firebaseBills = snapshot.val();
-                if (firebaseBills) {
-                    bills = Object.values(firebaseBills);
-                    localStorage.setItem('bills', JSON.stringify(bills));
-                    updateDashboard();
-                }
-            });
+        // Show loading overlay
+        function showLoading(message) {
+            const overlay = document.getElementById('loadingOverlay');
+            const text = document.getElementById('loadingText');
+            if (overlay) overlay.style.display = 'flex';
+            if (text && message) text.textContent = message;
+        }
 
-            // Listen for business settings changes
-            database.ref('businessSettings').on('value', (snapshot) => {
-                const firebaseSettings = snapshot.val();
-                if (firebaseSettings) {
-                    businessSettings = firebaseSettings;
-                    localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
-                    loadBusinessSettings();
-                }
-            });
+        // Hide loading overlay
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.style.display = 'none';
         }
 
         // Load all data from Firebase
-        function loadAllDataFromFirebase() {
-            Promise.all([
-                database.ref('items').once('value'),
-                database.ref('bills').once('value'),
-                database.ref('businessSettings').once('value')
-            ]).then(([itemsSnapshot, billsSnapshot, settingsSnapshot]) => {
-                // Load items
-                const firebaseItems = itemsSnapshot.val();
-                if (firebaseItems) {
-                    items = Object.values(firebaseItems);
-                    localStorage.setItem('items', JSON.stringify(items));
-                } else {
-                    // If no items in Firebase, initialize with sample data
-                    initializeSampleData();
+        function loadData() {
+            showLoading("Loading data...");
+            
+            // Load settings first
+            database.ref('settings').once('value').then((snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    settings = { ...settings, ...data };
                 }
-
-                // Load bills
-                const firebaseBills = billsSnapshot.val();
-                if (firebaseBills) {
-                    bills = Object.values(firebaseBills);
-                    localStorage.setItem('bills', JSON.stringify(bills));
-                }
-
-                // Load settings
-                const firebaseSettings = settingsSnapshot.val();
-                if (firebaseSettings) {
-                    businessSettings = firebaseSettings;
-                    localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
-                }
-
-                // Update all displays
-                loadBusinessSettings();
-                updateItemsDisplay();
-                updateStockDisplay();
-                updateBillingDisplay();
-                updateDashboard();
+                loadSettingsToUI();
                 
-                updateLastSyncTime();
-                showStatus('Data loaded from Firebase successfully!', 'success');
+                // Then load products
+                return database.ref('products').once('value');
+            }).then((snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    products = Object.keys(data).map(key => ({
+                        id: key,
+                        ...data[key]
+                    }));
+                } else {
+                    products = [];
+                }
+                loadProducts();
+                loadSellingProducts();
+                
+                // Then load bills
+                return database.ref('bills').once('value');
+            }).then((snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    bills = Object.keys(data).map(key => ({
+                        billNumber: key,
+                        ...data[key]
+                    }));
+                } else {
+                    bills = [];
+                }
+                loadBills();
+                updateAnalytics();
+                
+                hideLoading();
+                showNotification("Data loaded successfully", "success");
             }).catch((error) => {
-                console.error('Error loading data from Firebase:', error);
-                loadFromLocalStorage();
-                showStatus('Using local data. Firebase connection failed.', 'error');
+                console.error("Error loading data:", error);
+                hideLoading();
+                showNotification("Error loading data", "error");
             });
         }
 
-        // Initialize sample data
-        function initializeSampleData() {
-            const sampleItems = [
-                { id: Date.now() + 1, name: "Rice 1kg", price: 120, stock: 50 },
-                { id: Date.now() + 2, name: "Sugar 1kg", price: 90, stock: 30 },
-                { id: Date.now() + 3, name: "Flour 1kg", price: 80, stock: 25 },
-                { id: Date.now() + 4, name: "Milk Powder 400g", price: 450, stock: 15 },
-                { id: Date.now() + 5, name: "Tea 200g", price: 180, stock: 20 }
-            ];
-            
-            items = sampleItems;
-            localStorage.setItem('items', JSON.stringify(items));
-            
-            // Save to Firebase
-            sampleItems.forEach(item => {
-                database.ref('items/' + item.id).set(item);
-            });
-            
-            showStatus('Sample data initialized!', 'success');
-        }
-
-        // Load data from local storage as fallback
-        function loadFromLocalStorage() {
-            const localItems = localStorage.getItem('items');
-            const localBills = localStorage.getItem('bills');
-            const localSettings = localStorage.getItem('businessSettings');
-
-            if (localItems) items = JSON.parse(localItems);
-            if (localBills) bills = JSON.parse(localBills);
-            if (localSettings) businessSettings = JSON.parse(localSettings);
-
-            loadBusinessSettings();
-            updateItemsDisplay();
-            updateStockDisplay();
-            updateBillingDisplay();
-            updateDashboard();
-        }
-
-        // Update Firebase connection status
-        function updateFirebaseStatus(message, color) {
-            const statusElement = document.getElementById('firebaseStatus');
-            const syncStatusElement = document.getElementById('syncStatus');
-            const indicator = statusElement.querySelector('.sync-indicator');
-            
-            indicator.className = 'sync-indicator';
-            
-            if (color === 'green') {
-                statusElement.className = 'firebase-status status-online';
-                indicator.classList.add('sync-green');
-                statusElement.innerHTML = `<span class="sync-indicator sync-green"></span> Online`;
-                syncStatusElement.textContent = 'Live Sync Active';
-            } else if (color === 'red') {
-                statusElement.className = 'firebase-status status-offline';
-                indicator.classList.add('sync-red');
-                statusElement.innerHTML = `<span class="sync-indicator sync-red"></span> Offline`;
-                syncStatusElement.textContent = 'Offline Mode';
-            } else {
-                statusElement.className = 'firebase-status status-info';
-                indicator.classList.add('sync-yellow');
-                statusElement.innerHTML = `<span class="sync-indicator sync-yellow"></span> ${message}`;
-                syncStatusElement.textContent = message;
+        // Save products to Firebase
+        function saveProductsToFirebase() {
+            if (!isConnected) {
+                showNotification("Cannot save - working offline", "warning");
+                return Promise.resolve();
             }
+            
+            showLoading("Saving products...");
+            
+            // Convert array to object
+            const productsObj = {};
+            products.forEach(product => {
+                productsObj[product.id] = product;
+            });
+            
+            return database.ref('products').set(productsObj)
+                .then(() => {
+                    console.log("Products saved successfully");
+                    hideLoading();
+                    showNotification("Products saved successfully", "success");
+                    return true;
+                })
+                .catch((error) => {
+                    console.error("Error saving products:", error);
+                    hideLoading();
+                    showNotification("Error saving products", "error");
+                    return false;
+                });
         }
 
-        // Update last sync time
-        function updateLastSyncTime() {
-            const now = new Date();
-            document.getElementById('lastSyncTime').textContent = now.toLocaleString();
+        // Save bills to Firebase
+        function saveBillsToFirebase() {
+            if (!isConnected) {
+                showNotification("Cannot save - working offline", "warning");
+                return Promise.resolve();
+            }
+            
+            showLoading("Saving bills...");
+            
+            // Convert array to object
+            const billsObj = {};
+            bills.forEach(bill => {
+                billsObj[bill.billNumber] = bill;
+            });
+            
+            return database.ref('bills').set(billsObj)
+                .then(() => {
+                    console.log("Bills saved successfully");
+                    hideLoading();
+                    return true;
+                })
+                .catch((error) => {
+                    console.error("Error saving bills:", error);
+                    hideLoading();
+                    showNotification("Error saving bills", "error");
+                    return false;
+                });
         }
 
-        // Set up event listeners
-        function setupEventListeners() {
-            // Sidebar navigation
-            document.querySelectorAll('.sidebar a').forEach(link => {
-                link.addEventListener('click', function(e) {
+        // Save settings to Firebase
+        function saveSettingsToFirebase() {
+            if (!isConnected) {
+                showNotification("Cannot save - working offline", "warning");
+                return Promise.resolve();
+            }
+            
+            showLoading("Saving settings...");
+            
+            return database.ref('settings').set(settings)
+                .then(() => {
+                    console.log("Settings saved successfully");
+                    hideLoading();
+                    showNotification("Settings saved successfully", "success");
+                    return true;
+                })
+                .catch((error) => {
+                    console.error("Error saving settings:", error);
+                    hideLoading();
+                    showNotification("Error saving settings", "error");
+                    return false;
+                });
+        }
+
+        // Sidebar functionality
+        function initSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const menuItems = document.querySelectorAll('.menu-item');
+            
+            toggleBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                document.getElementById('mainContent').classList.toggle('expanded');
+                
+                const icon = this.querySelector('i');
+                icon.classList.toggle('fa-chevron-left');
+                icon.classList.toggle('fa-chevron-right');
+            });
+            
+            menuItems.forEach(item => {
+                item.addEventListener('click', function(e) {
                     e.preventDefault();
-                    const tab = this.getAttribute('data-tab');
-                    showTab(tab);
                     
-                    // Update active class
-                    document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+                    menuItems.forEach(i => i.classList.remove('active'));
                     this.classList.add('active');
+                    
+                    const tabId = this.dataset.tab;
+                    showTab(tabId);
+                    
+                    if (window.innerWidth < 1024) {
+                        sidebar.classList.add('collapsed');
+                        document.getElementById('mainContent').classList.add('expanded');
+                    }
                 });
             });
-            
-            // Search items
-            document.getElementById('searchBtn').addEventListener('click', searchItems);
-            document.getElementById('searchItem').addEventListener('input', searchItems);
-            
-            // Cart and billing
-            document.getElementById('generateBill').addEventListener('click', generateBill);
-            document.getElementById('clearCart').addEventListener('click', clearCart);
-            document.getElementById('discount').addEventListener('input', updateCartTotal);
-            
-            // Items management
-            document.getElementById('saveItem').addEventListener('click', saveItem);
-            
-            // Business settings
-            document.getElementById('businessSettings').addEventListener('submit', saveBusinessSettings);
-            
-            // Logo upload
-            document.getElementById('logoUploadArea').addEventListener('click', () => {
-                document.getElementById('logoFileInput').click();
-            });
-            
-            document.getElementById('logoFileInput').addEventListener('change', handleLogoSelect);
-            document.getElementById('uploadLogoBtn').addEventListener('click', uploadLogo);
-            document.getElementById('removeLogoBtn').addEventListener('click', removeLogo);
-            
-            // Bill actions
-            document.getElementById('printBill').addEventListener('click', printBill);
-            document.getElementById('downloadPDF').addEventListener('click', downloadPDF);
-            
-            // Data management
-            document.getElementById('syncDataBtn').addEventListener('click', forceSyncWithFirebase);
-            document.getElementById('exportDataBtn').addEventListener('click', exportData);
-            document.getElementById('clearDataBtn').addEventListener('click', clearAllData);
         }
 
-        // Show selected tab
-        function showTab(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.add('hidden');
-            });
-            
-            // Show selected tab
-            document.getElementById(tabName).classList.remove('hidden');
-            
-            // Refresh data if needed
-            if (tabName === 'dashboard') {
-                updateDashboard();
-            } else if (tabName === 'items') {
-                updateItemsDisplay();
-            } else if (tabName === 'stock') {
-                updateStockDisplay();
-            } else if (tabName === 'billing') {
-                updateBillingDisplay();
-            }
-        }
-
-        // Load business settings
-        function loadBusinessSettings() {
-            document.getElementById('businessName').textContent = businessSettings.name;
-            document.getElementById('businessNameInput').value = businessSettings.name;
-            document.getElementById('contactDetails').value = businessSettings.contact;
-            
-            if (businessSettings.logo) {
-                document.getElementById('businessLogo').src = businessSettings.logo;
-                document.getElementById('logoPreview').src = businessSettings.logo;
-                document.getElementById('logoPreview').classList.remove('hidden');
-            }
-        }
-
-        // Handle logo selection
-        function handleLogoSelect(event) {
-            const file = event.target.files[0];
-            if (file) {
-                // Check file type
-                if (!file.type.match('image/jpeg') && !file.type.match('image/jpg') && !file.type.match('image/png')) {
-                    showStatus('Please select a JPG, JPEG or PNG image file.', 'error');
-                    return;
-                }
+        // Tab navigation
+        function initNavigation() {
+            // Make the function globally accessible
+            window.showTab = function(tabId) {
+                console.log("Switching to tab:", tabId);
                 
-                // Check file size (5MB limit)
-                if (file.size > 5 * 1024 * 1024) {
-                    showStatus('File size must be less than 5MB.', 'error');
-                    return;
-                }
+                // Hide all tabs
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
                 
-                selectedLogoFile = file;
-                
-                // Show preview
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('logoPreview').src = e.target.result;
-                    document.getElementById('logoPreview').classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-                
-                showStatus('Logo selected. Click "Upload Logo" to save it.', 'info');
-            }
-        }
-
-        // Upload logo to Firebase Storage
-        function uploadLogo() {
-            if (!selectedLogoFile) {
-                showStatus('Please select a logo file first.', 'error');
-                return;
-            }
-            
-            showStatus('Uploading logo...', 'info');
-            
-            const storageRef = storage.ref();
-            const logoRef = storageRef.child('business-logo/' + Date.now() + '-' + selectedLogoFile.name);
-            
-            logoRef.put(selectedLogoFile).then((snapshot) => {
-                return snapshot.ref.getDownloadURL();
-            }).then((downloadURL) => {
-                businessSettings.logo = downloadURL;
-                localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
-                
-                // Save to Firebase
-                saveToFirebase('businessSettings', businessSettings);
-                
-                loadBusinessSettings();
-                showStatus('Logo uploaded successfully!', 'success');
-                selectedLogoFile = null;
-            }).catch((error) => {
-                console.error('Error uploading logo:', error);
-                showStatus('Error uploading logo: ' + error.message, 'error');
-            });
-        }
-
-        // Remove logo
-        function removeLogo() {
-            businessSettings.logo = '';
-            localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
-            
-            // Save to Firebase
-            saveToFirebase('businessSettings', businessSettings);
-            
-            loadBusinessSettings();
-            document.getElementById('logoPreview').classList.add('hidden');
-            document.getElementById('logoFileInput').value = '';
-            selectedLogoFile = null;
-            showStatus('Logo removed.', 'info');
-        }
-
-        // Save data to Firebase (generic function)
-        function saveToFirebase(path, data) {
-            if (isOnline) {
-                return database.ref(path).set(data)
-                    .then(() => {
-                        console.log(`Data saved to Firebase: ${path}`);
-                        updateLastSyncTime();
-                        return true;
-                    })
-                    .catch((error) => {
-                        console.error(`Error saving to Firebase (${path}):`, error);
-                        return false;
-                    });
-            } else {
-                console.log('Offline - Data saved locally, will sync when online');
-                return Promise.resolve(false);
-            }
-        }
-
-        // Save business settings
-        function saveBusinessSettings(e) {
-            e.preventDefault();
-            
-            businessSettings.name = document.getElementById('businessNameInput').value;
-            businessSettings.contact = document.getElementById('contactDetails').value;
-            
-            localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
-            
-            // Save to Firebase
-            saveToFirebase('businessSettings', businessSettings);
-            
-            loadBusinessSettings();
-            showStatus('Business settings saved successfully!', 'success');
-        }
-
-        // Show status message
-        function showStatus(message, type) {
-            const statusElement = document.getElementById('statusMessage');
-            statusElement.textContent = message;
-            statusElement.className = 'status-message';
-            
-            if (type === 'success') {
-                statusElement.classList.add('status-success');
-            } else if (type === 'error') {
-                statusElement.classList.add('status-error');
-            } else if (type === 'info') {
-                statusElement.classList.add('status-info');
-            }
-            
-            // Auto hide after 5 seconds
-            setTimeout(() => {
-                statusElement.textContent = '';
-                statusElement.className = '';
-            }, 5000);
-        }
-
-        // Force sync with Firebase
-        function forceSyncWithFirebase() {
-            if (!isOnline) {
-                showStatus('Cannot sync - You are offline', 'error');
-                return;
-            }
-
-            showStatus('Syncing data with Firebase...', 'info');
-            
-            Promise.all([
-                saveToFirebase('items', arrayToObject(items)),
-                saveToFirebase('bills', arrayToObject(bills)),
-                saveToFirebase('businessSettings', businessSettings)
-            ]).then((results) => {
-                if (results.every(result => result)) {
-                    showStatus('All data synced successfully with Firebase!', 'success');
-                    updateLastSyncTime();
+                // Show the selected tab
+                const tab = document.getElementById(tabId);
+                if (tab) {
+                    tab.classList.add('active');
                 } else {
-                    showStatus('Some data may not have synced properly.', 'warning');
+                    console.error("Tab not found:", tabId);
+                    return;
                 }
-            }).catch((error) => {
-                console.error('Error syncing data with Firebase:', error);
-                showStatus('Error syncing data: ' + error.message, 'error');
+                
+                // Update page title
+                const pageTitle = document.getElementById('pageTitle');
+                const tabNames = {
+                    'analytics': 'Analytics Dashboard',
+                    'products': 'Products',
+                    'add-product': 'Add Product',
+                    'selling': 'Selling',
+                    'bills': 'Bills History',
+                    'admin': 'Admin Settings'
+                };
+                pageTitle.textContent = tabNames[tabId] || 'Dashboard';
+                
+                // Refresh content based on which tab is shown
+                switch(tabId) {
+                    case 'products':
+                        loadProducts();
+                        break;
+                    case 'selling':
+                        loadSellingProducts();
+                        break;
+                    case 'bills':
+                        loadBills();
+                        break;
+                    case 'analytics':
+                        updateAnalytics();
+                        break;
+                    case 'add-product':
+                        // Reset form when switching to add product tab
+                        document.getElementById('addProductForm').reset();
+                        break;
+                }
+            };
+        }
+
+        // Initialize forms
+        function initForms() {
+            // Add product form
+            const addProductForm = document.getElementById('addProductForm');
+            if (addProductForm) {
+                addProductForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    addProduct();
+                });
+            }
+            
+            // Checkout button
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            if (checkoutBtn) {
+                checkoutBtn.addEventListener('click', checkout);
+            }
+            
+            // Clear cart button
+            const clearCartBtn = document.getElementById('clearCartBtn');
+            if (clearCartBtn) {
+                clearCartBtn.addEventListener('click', clearCart);
+            }
+            
+            // Search and filter listeners
+            const productSearch = document.getElementById('productSearch');
+            if (productSearch) {
+                productSearch.addEventListener('input', loadProducts);
+            }
+            
+            const stockFilter = document.getElementById('stockFilter');
+            if (stockFilter) {
+                stockFilter.addEventListener('change', loadProducts);
+            }
+            
+            const sellingSearch = document.getElementById('sellingSearch');
+            if (sellingSearch) {
+                sellingSearch.addEventListener('input', loadSellingProducts);
+            }
+            
+            const billDateFilter = document.getElementById('billDateFilter');
+            if (billDateFilter) {
+                billDateFilter.addEventListener('change', loadBills);
+            }
+            
+            const billSort = document.getElementById('billSort');
+            if (billSort) {
+                billSort.addEventListener('change', loadBills);
+            }
+            
+            // Escape key to close bill modal
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeBillModal();
+                }
+            });
+            
+            // Click outside to close bill modal
+            document.getElementById('billModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeBillModal();
+                }
             });
         }
 
-        // Convert array to object for Firebase
-        function arrayToObject(array) {
-            const obj = {};
-            array.forEach(item => {
-                obj[item.id] = item;
-            });
-            return obj;
+        // Load settings to UI
+        function loadSettingsToUI() {
+            document.getElementById('businessNameInput').value = settings.businessName;
+            document.getElementById('businessAddress').value = settings.businessAddress;
+            document.getElementById('businessPhone').value = settings.businessPhone;
+            document.getElementById('businessEmail').value = settings.businessEmail;
+            document.getElementById('receiptFooter').value = settings.receiptFooter;
+            document.getElementById('taxRate').value = settings.taxRate;
+            
+            document.getElementById('businessName').textContent = settings.businessName;
+            document.getElementById('businessLogo').textContent = settings.businessName.charAt(0);
         }
 
-        // Export data
-        function exportData() {
-            const data = {
-                items: items,
-                bills: bills,
-                businessSettings: businessSettings,
-                exportDate: new Date().toISOString()
+        // Save settings
+        function saveSettings() {
+            settings.businessName = document.getElementById('businessNameInput').value;
+            settings.businessAddress = document.getElementById('businessAddress').value;
+            settings.businessPhone = document.getElementById('businessPhone').value;
+            settings.businessEmail = document.getElementById('businessEmail').value;
+            settings.receiptFooter = document.getElementById('receiptFooter').value;
+            settings.taxRate = parseFloat(document.getElementById('taxRate').value);
+            
+            // Save to Firebase
+            saveSettingsToFirebase().then(() => {
+                document.getElementById('businessName').textContent = settings.businessName;
+                document.getElementById('businessLogo').textContent = settings.businessName.charAt(0);
+            });
+        }
+
+        // Add product
+        function addProduct() {
+            const product = {
+                id: document.getElementById('productId').value.trim(),
+                name: document.getElementById('productName').value.trim(),
+                price: parseFloat(document.getElementById('productPrice').value),
+                stock: parseInt(document.getElementById('productStock').value),
+                description: document.getElementById('productDescription').value.trim()
             };
             
-            const dataStr = JSON.stringify(data, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `mata-mae-business-data-${new Date().getTime()}.json`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            
-            showStatus('Data exported successfully!', 'success');
-        }
-
-        // Clear all data
-        function clearAllData() {
-            if (confirm('Are you sure you want to clear ALL data? This action cannot be undone.')) {
-                if (confirm('This will delete ALL items, bills, and settings. Are you absolutely sure?')) {
-                    items = [];
-                    bills = [];
-                    cart = [];
-                    businessSettings = {
-                        name: "Mata Mae Business",
-                        logo: "",
-                        contact: "123 Main Street, City, Country\nPhone: +94 77 123 4567\nEmail: info@matamae.lk"
-                    };
-                    
-                    localStorage.removeItem('items');
-                    localStorage.removeItem('bills');
-                    localStorage.removeItem('businessSettings');
-                    
-                    // Clear Firebase data
-                    if (isOnline) {
-                        database.ref('items').remove();
-                        database.ref('bills').remove();
-                        database.ref('businessSettings').remove();
-                    }
-                    
-                    // Reload the application
-                    location.reload();
-                }
+            // Validate
+            if (!product.id || !product.name || isNaN(product.price) || isNaN(product.stock)) {
+                showNotification("Please fill all required fields correctly", "error");
+                return;
             }
-        }
-
-        // Update items display
-        function updateItemsDisplay() {
-            const itemsList = document.getElementById('itemsList');
-            itemsList.innerHTML = '';
             
-            items.forEach((item, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${item.name}</td>
-                    <td>Rs. ${item.price.toFixed(2)}</td>
-                    <td>${item.stock}</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning edit-item" data-index="${index}">Edit</button>
-                        <button class="btn btn-sm btn-danger delete-item" data-index="${index}">Delete</button>
-                    </td>
-                `;
-                itemsList.appendChild(row);
-            });
+            // Check if product exists
+            if (products.find(p => p.id === product.id)) {
+                showNotification("Product ID already exists", "error");
+                return;
+            }
             
-            // Add event listeners for edit and delete buttons
-            document.querySelectorAll('.edit-item').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = this.getAttribute('data-index');
-                    editItem(index);
-                });
-            });
+            // Add default image
+            product.image = 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=400';
             
-            document.querySelectorAll('.delete-item').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = this.getAttribute('data-index');
-                    deleteItem(index);
-                });
+            // Add to products array
+            products.push(product);
+            
+            // Save to Firebase
+            saveProductsToFirebase().then(() => {
+                // Reset form
+                document.getElementById('addProductForm').reset();
+                showNotification("Product added successfully", "success");
+                
+                // Refresh product lists
+                loadProducts();
+                loadSellingProducts();
             });
         }
 
-        // Update stock display
-        function updateStockDisplay() {
-            const stockTable = document.getElementById('stockTable');
-            stockTable.innerHTML = '';
+        // Load products for management
+        function loadProducts() {
+            const searchTerm = document.getElementById('productSearch')?.value.toLowerCase() || '';
+            const stockFilter = document.getElementById('stockFilter')?.value || '';
             
-            items.forEach((item, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${item.name}</td>
-                    <td>${item.stock}</td>
-                    <td>Rs. ${item.price.toFixed(2)}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary update-stock" data-index="${index}">Update Stock</button>
-                    </td>
-                `;
-                stockTable.appendChild(row);
+            let filteredProducts = products.filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(searchTerm) || 
+                                      p.id.toLowerCase().includes(searchTerm);
+                let matchesStock = true;
+                
+                if (stockFilter === 'low') matchesStock = p.stock < 20;
+                else if (stockFilter === 'out') matchesStock = p.stock === 0;
+                else if (stockFilter === 'in') matchesStock = p.stock > 0;
+                
+                return matchesSearch && matchesStock;
             });
             
-            // Add event listeners for update stock buttons
-            document.querySelectorAll('.update-stock').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = this.getAttribute('data-index');
-                    updateStock(index);
-                });
-            });
+            const grid = document.getElementById('productGrid');
+            if (!grid) return;
+            
+            if (filteredProducts.length === 0) {
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:#718096;">No products found</div>';
+                return;
+            }
+            
+            grid.innerHTML = filteredProducts.map(p => `
+                <div class="product-card">
+                    <img src="${p.image}" alt="${p.name}" class="product-image">
+                    <div class="product-info">
+                        <div class="product-name">${p.name}</div>
+                        <div class="product-details">
+                            <div class="product-price">Rs ${p.price.toFixed(2)}</div>
+                            <div class="product-stock ${p.stock < 20 ? 'low' : ''}">Stock: ${p.stock}</div>
+                        </div>
+                        <div class="product-actions">
+                            <button class="btn btn-primary" onclick="editProduct('${p.id}')" style="flex:1;">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteProduct('${p.id}')" style="flex:1;">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        // Update billing display
-        function updateBillingDisplay() {
-            const itemsTable = document.getElementById('itemsTable');
-            itemsTable.innerHTML = '';
+        // Load products for selling
+        function loadSellingProducts() {
+            const searchTerm = document.getElementById('sellingSearch')?.value.toLowerCase() || '';
             
-            items.forEach((item, index) => {
-                if (item.stock > 0) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${item.name}</td>
-                        <td>Rs. ${item.price.toFixed(2)}</td>
-                        <td>${item.stock}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary add-to-cart" data-index="${index}">Add to Cart</button>
-                        </td>
-                    `;
-                    itemsTable.appendChild(row);
-                }
-            });
-            
-            // Add event listeners for add to cart buttons
-            document.querySelectorAll('.add-to-cart').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = this.getAttribute('data-index');
-                    addToCart(index);
-                });
-            });
-            
-            updateCartDisplay();
-        }
-
-        // Search items
-        function searchItems() {
-            const searchTerm = document.getElementById('searchItem').value.toLowerCase();
-            const itemsTable = document.getElementById('itemsTable');
-            itemsTable.innerHTML = '';
-            
-            const filteredItems = items.filter(item => 
-                item.name.toLowerCase().includes(searchTerm) && item.stock > 0
+            let filteredProducts = products.filter(p => 
+                p.stock > 0 && (
+                    p.name.toLowerCase().includes(searchTerm) ||
+                    p.id.toLowerCase().includes(searchTerm)
+                )
             );
             
-            filteredItems.forEach((item, index) => {
-                const originalIndex = items.findIndex(i => i.id === item.id);
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.name}</td>
-                    <td>Rs. ${item.price.toFixed(2)}</td>
-                    <td>${item.stock}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary add-to-cart" data-index="${originalIndex}">Add to Cart</button>
-                    </td>
-                `;
-                itemsTable.appendChild(row);
-            });
+            const grid = document.getElementById('sellingProductGrid');
+            if (!grid) return;
             
-            // Add event listeners for add to cart buttons
-            document.querySelectorAll('.add-to-cart').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = this.getAttribute('data-index');
-                    addToCart(index);
-                });
-            });
+            if (filteredProducts.length === 0) {
+                grid.innerHTML = '<div style="text-align:center; padding:40px; color:#718096;">No products found</div>';
+                return;
+            }
+            
+            grid.innerHTML = filteredProducts.map(p => `
+                <div class="product-card">
+                    <img src="${p.image}" alt="${p.name}" class="product-image">
+                    <div class="product-info">
+                        <div class="product-name">${p.name}</div>
+                        <div class="product-details">
+                            <div class="product-price">Rs ${p.price.toFixed(2)}</div>
+                            <div class="product-stock ${p.stock < 20 ? 'low' : ''}">Stock: ${p.stock}</div>
+                        </div>
+                        <button class="btn btn-primary" onclick="addToCart('${p.id}')" style="width:100%;">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        // Add item to cart
-        function addToCart(index) {
-            const item = items[index];
+        // Add to cart
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product || product.stock === 0) {
+                showNotification('Product out of stock!', 'error');
+                return;
+            }
             
-            // Check if item is already in cart
-            const existingItem = cart.find(cartItem => cartItem.index === index);
-            
+            const existingItem = cart.find(item => item.id === productId);
             if (existingItem) {
-                if (existingItem.quantity < item.stock) {
+                if (existingItem.quantity < product.stock) {
                     existingItem.quantity++;
+                    existingItem.total = existingItem.quantity * existingItem.price;
                 } else {
-                    alert(`Only ${item.stock} units of ${item.name} available in stock.`);
+                    showNotification('Not enough stock available!', 'error');
                     return;
                 }
             } else {
-                if (item.stock > 0) {
-                    cart.push({
-                        index: index,
-                        name: item.name,
-                        price: item.price,
-                        quantity: 1
-                    });
-                } else {
-                    alert(`${item.name} is out of stock.`);
-                    return;
-                }
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    total: product.price
+                });
             }
             
             updateCartDisplay();
+            showNotification(`${product.name} added to cart`, 'success');
         }
 
         // Update cart display
         function updateCartDisplay() {
             const cartItems = document.getElementById('cartItems');
-            cartItems.innerHTML = '';
+            const cartTotal = document.getElementById('cartTotal');
             
-            cart.forEach((item, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.name}</td>
-                    <td>
-                        <div class="input-group input-group-sm">
-                            <button class="btn btn-outline-secondary decrease-quantity" type="button" data-index="${index}">-</button>
-                            <input type="number" class="form-control text-center" value="${item.quantity}" min="1" max="${items[item.index].stock}" data-index="${index}">
-                            <button class="btn btn-outline-secondary increase-quantity" type="button" data-index="${index}">+</button>
-                        </div>
-                    </td>
-                    <td>Rs. ${item.price.toFixed(2)}</td>
-                    <td>Rs. ${(item.price * item.quantity).toFixed(2)}</td>
-                    <td><button class="btn btn-sm btn-danger remove-from-cart" data-index="${index}">Remove</button></td>
+            if (cart.length === 0) {
+                cartItems.innerHTML = `
+                    <div style="text-align: center; color: #718096; padding: 40px 0;">
+                        <i class="fas fa-shopping-cart" style="font-size: 48px; margin-bottom: 15px;"></i>
+                        <div>Your cart is empty</div>
+                    </div>
                 `;
-                cartItems.appendChild(row);
-            });
-            
-            // Add event listeners for cart controls
-            document.querySelectorAll('.decrease-quantity').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = this.getAttribute('data-index');
-                    decreaseQuantity(index);
-                });
-            });
-            
-            document.querySelectorAll('.increase-quantity').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = this.getAttribute('data-index');
-                    increaseQuantity(index);
-                });
-            });
-            
-            document.querySelectorAll('.remove-from-cart').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = this.getAttribute('data-index');
-                    removeFromCart(index);
-                });
-            });
-            
-            document.querySelectorAll('.cart-items input').forEach(input => {
-                input.addEventListener('change', function() {
-                    const index = this.getAttribute('data-index');
-                    updateQuantity(index, parseInt(this.value));
-                });
-            });
-            
-            updateCartTotal();
-        }
-
-        // Decrease item quantity in cart
-        function decreaseQuantity(index) {
-            if (cart[index].quantity > 1) {
-                cart[index].quantity--;
-                updateCartDisplay();
+                cartTotal.textContent = 'Rs 0.00';
+                return;
             }
+            
+            let total = 0;
+            cartItems.innerHTML = cart.map(item => {
+                total += item.total;
+                return `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-qty">
+                                <button class="qty-btn" onclick="updateCartQuantity('${item.id}', -1)">-</button>
+                                <span>${item.quantity}</span>
+                                <button class="qty-btn" onclick="updateCartQuantity('${item.id}', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="cart-item-price">Rs ${item.total.toFixed(2)}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            cartTotal.textContent = 'Rs ' + total.toFixed(2);
         }
 
-        // Increase item quantity in cart
-        function increaseQuantity(index) {
-            const itemIndex = cart[index].index;
-            if (cart[index].quantity < items[itemIndex].stock) {
-                cart[index].quantity++;
-                updateCartDisplay();
+        // Update cart quantity
+        function updateCartQuantity(productId, change) {
+            const item = cart.find(item => item.id === productId);
+            const product = products.find(p => p.id === productId);
+            
+            if (!item || !product) return;
+            
+            const newQuantity = item.quantity + change;
+            
+            if (newQuantity < 1) {
+                cart = cart.filter(item => item.id !== productId);
+            } else if (newQuantity > product.stock) {
+                showNotification('Not enough stock available!', 'error');
+                return;
             } else {
-                alert(`Only ${items[itemIndex].stock} units of ${items[itemIndex].name} available in stock.`);
+                item.quantity = newQuantity;
+                item.total = newQuantity * item.price;
             }
-        }
-
-        // Update item quantity in cart
-        function updateQuantity(index, newQuantity) {
-            const itemIndex = cart[index].index;
-            if (newQuantity > 0 && newQuantity <= items[itemIndex].stock) {
-                cart[index].quantity = newQuantity;
-                updateCartDisplay();
-            } else if (newQuantity > items[itemIndex].stock) {
-                alert(`Only ${items[itemIndex].stock} units of ${items[itemIndex].name} available in stock.`);
-                cart[index].quantity = items[itemIndex].stock;
-                updateCartDisplay();
-            }
-        }
-
-        // Remove item from cart
-        function removeFromCart(index) {
-            cart.splice(index, 1);
-            updateCartDisplay();
-        }
-
-        // Update cart total
-        function updateCartTotal() {
-            const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-            const discount = parseFloat(document.getElementById('discount').value) || 0;
-            const finalAmount = subtotal - discount;
             
-            document.getElementById('cartTotal').textContent = `Rs. ${subtotal.toFixed(2)}`;
-            document.getElementById('discountAmount').textContent = `Rs. ${discount.toFixed(2)}`;
-            document.getElementById('finalAmount').textContent = `Rs. ${finalAmount.toFixed(2)}`;
+            updateCartDisplay();
         }
 
         // Clear cart
         function clearCart() {
-            if (confirm('Are you sure you want to clear the cart?')) {
-                cart = [];
-                document.getElementById('discount').value = 0;
-                updateCartDisplay();
-            }
-        }
-
-        // Generate bill
-        function generateBill() {
             if (cart.length === 0) {
-                alert('Cart is empty. Please add items to generate a bill.');
+                showNotification('Cart is already empty!', 'info');
                 return;
             }
             
-            const discount = parseFloat(document.getElementById('discount').value) || 0;
-            const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-            const finalAmount = subtotal - discount;
-            
-            // Create bill object
-            const bill = {
-                id: Date.now(),
-                date: new Date().toLocaleDateString(),
-                time: new Date().toLocaleTimeString(),
-                items: [...cart],
-                subtotal: subtotal,
-                discount: discount,
-                total: finalAmount
-            };
-            
-            // Update stock
-            cart.forEach(item => {
-                items[item.index].stock -= item.quantity;
-                
-                // Update item in Firebase
-                saveToFirebase(`items/${items[item.index].id}`, items[item.index]);
-            });
-            
-            // Save data to localStorage
-            localStorage.setItem('items', JSON.stringify(items));
-            bills.push(bill);
-            localStorage.setItem('bills', JSON.stringify(bills));
-            
-            // Save bill to Firebase
-            saveToFirebase(`bills/${bill.id}`, bill);
-            
-            // Show bill preview
-            showBillPreview(bill);
-            
-            // Clear cart
-            cart = [];
-            document.getElementById('discount').value = 0;
-            updateCartDisplay();
-            updateBillingDisplay();
-            updateStockDisplay();
-            updateDashboard();
+            if (confirm('Are you sure you want to clear the cart?')) {
+                cart = [];
+                updateCartDisplay();
+                showNotification('Cart cleared!', 'success');
+            }
         }
 
-        // Show bill preview
-        function showBillPreview(bill) {
-            const billContent = document.getElementById('billContent');
+        // Checkout
+        function checkout() {
+            if (cart.length === 0) {
+                showNotification('Cart is empty!', 'error');
+                return;
+            }
             
-            let itemsHtml = '';
-            bill.items.forEach(item => {
-                itemsHtml += `
-                    <tr>
-                        <td>${item.name}</td>
-                        <td>${item.quantity}</td>
-                        <td>Rs. ${item.price.toFixed(2)}</td>
-                        <td>Rs. ${(item.price * item.quantity).toFixed(2)}</td>
-                    </tr>
-                `;
+            const customerName = document.getElementById('customerName').value.trim();
+            const customerMobile = document.getElementById('customerMobile').value.trim();
+            const customerAddress = document.getElementById('customerAddress').value.trim();
+            
+            if (!customerName || !customerMobile) {
+                showNotification('Please enter customer name and mobile number!', 'error');
+                return;
+            }
+            
+            const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
+            const tax = subtotal * (settings.taxRate / 100);
+            const total = subtotal + tax;
+            
+            const billNumber = 'INV-' + Date.now().toString().slice(-8);
+            const date = new Date().toISOString().split('T')[0];
+            const time = new Date().toLocaleTimeString();
+            
+            // Update product stock
+            cart.forEach(cartItem => {
+                const product = products.find(p => p.id === cartItem.id);
+                if (product) {
+                    product.stock -= cartItem.quantity;
+                }
             });
             
-            billContent.innerHTML = `
-                <div class="invoice-header">
-                    <div>
-                        <img src="${businessSettings.logo || '#'}" class="invoice-logo" alt="Business Logo">
-                        <h3>${businessSettings.name}</h3>
+            // Create bill
+            const bill = {
+                billNumber,
+                date,
+                time,
+                items: [...cart],
+                subtotal,
+                tax,
+                total,
+                customer: {
+                    name: customerName,
+                    mobile: customerMobile,
+                    address: customerAddress
+                }
+            };
+            
+            // Add to bills
+            bills.push(bill);
+            
+            // Save to Firebase
+            saveProductsToFirebase().then(() => {
+                return saveBillsToFirebase();
+            }).then(() => {
+                // Clear cart and form
+                cart = [];
+                document.getElementById('customerName').value = '';
+                document.getElementById('customerMobile').value = '';
+                document.getElementById('customerAddress').value = '';
+                
+                updateCartDisplay();
+                loadProducts();
+                loadSellingProducts();
+                loadBills();
+                updateAnalytics();
+                
+                // Show bill in modal
+                generateBill(bill);
+                showNotification('Sale completed successfully!', 'success');
+            });
+        }
+
+        // Generate bill
+        function generateBill(bill) {
+            const modalTitle = document.getElementById('billModalTitle');
+            const billContent = document.getElementById('billContent');
+            
+            modalTitle.textContent = `Invoice #${bill.billNumber}`;
+            
+            // Create bill HTML with table
+            const billHTML = `
+                <div class="bill-info">
+                    <div class="bill-info-section">
+                        <h3>Business Information</h3>
+                        <div class="bill-info-item">
+                            <span class="bill-info-label">Business:</span>
+                            <span class="bill-info-value">${settings.businessName}</span>
+                        </div>
+                        <div class="bill-info-item">
+                            <span class="bill-info-label">Address:</span>
+                            <span class="bill-info-value">${settings.businessAddress}</span>
+                        </div>
+                        <div class="bill-info-item">
+                            <span class="bill-info-label">Phone:</span>
+                            <span class="bill-info-value">${settings.businessPhone}</span>
+                        </div>
                     </div>
-                    <div class="invoice-details">
-                        <h4>INVOICE</h4>
-                        <p><strong>Bill No:</strong> ${bill.id}</p>
-                        <p><strong>Date:</strong> ${bill.date}</p>
-                        <p><strong>Time:</strong> ${bill.time}</p>
+                    
+                    <div class="bill-info-section">
+                        <h3>Customer Information</h3>
+                        <div class="bill-info-item">
+                            <span class="bill-info-label">Name:</span>
+                            <span class="bill-info-value">${bill.customer.name}</span>
+                        </div>
+                        <div class="bill-info-item">
+                            <span class="bill-info-label">Mobile:</span>
+                            <span class="bill-info-value">${bill.customer.mobile}</span>
+                        </div>
+                        ${bill.customer.address ? `
+                        <div class="bill-info-item">
+                            <span class="bill-info-label">Address:</span>
+                            <span class="bill-info-value">${bill.customer.address}</span>
+                        </div>
+                        ` : ''}
+                        <div class="bill-info-item">
+                            <span class="bill-info-label">Date:</span>
+                            <span class="bill-info-value">${bill.date} ${bill.time}</span>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="mb-4">
-                    <p>${businessSettings.contact.replace(/\n/g, '<br>')}</p>
-                </div>
-                
-                <table class="table table-bordered">
+                <h3 style="color: var(--primary-blue); margin-bottom: 15px;">Items Purchased</h3>
+                <table class="bill-items-table">
                     <thead>
                         <tr>
-                            <th>Item</th>
-                            <th>Quantity</th>
-                            <th>Unit Price</th>
-                            <th>Total</th>
+                            <th>#</th>
+                            <th>Product ID</th>
+                            <th>Product Name</th>
+                            <th class="text-center">Price (Rs)</th>
+                            <th class="text-center">Quantity</th>
+                            <th class="text-right">Total (Rs)</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${itemsHtml}
+                        ${bill.items.map((item, index) => `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${item.id}</td>
+                            <td>${item.name}</td>
+                            <td class="text-center">${item.price.toFixed(2)}</td>
+                            <td class="text-center">${item.quantity}</td>
+                            <td class="text-right">${item.total.toFixed(2)}</td>
+                        </tr>
+                        `).join('')}
                     </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
-                            <td><strong>Rs. ${bill.subtotal.toFixed(2)}</strong></td>
-                        </tr>
-                        <tr>
-                            <td colspan="3" class="text-end"><strong>Discount:</strong></td>
-                            <td><strong>Rs. ${bill.discount.toFixed(2)}</strong></td>
-                        </tr>
-                        <tr>
-                            <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                            <td><strong>Rs. ${bill.total.toFixed(2)}</strong></td>
-                        </tr>
-                    </tfoot>
                 </table>
                 
-                <div class="text-center mt-4">
-                    <p>Thank you for your business!</p>
+                <div class="bill-summary">
+                    <div class="bill-summary-row">
+                        <span>Subtotal:</span>
+                        <span>Rs ${bill.subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="bill-summary-row">
+                        <span>Tax (${settings.taxRate}%):</span>
+                        <span>Rs ${bill.tax.toFixed(2)}</span>
+                    </div>
+                    <div class="bill-summary-row total">
+                        <span>Grand Total:</span>
+                        <span>Rs ${bill.total.toFixed(2)}</span>
+                    </div>
+                </div>
+                
+                <div class="bill-footer">
+                    ${settings.receiptFooter}
                 </div>
             `;
             
+            billContent.innerHTML = billHTML;
+            
             // Show modal
-            const billModal = new bootstrap.Modal(document.getElementById('billPreviewModal'));
-            billModal.show();
+            document.getElementById('billModal').classList.add('active');
+        }
+
+        // View bill with table format
+        function viewBill(billNumber) {
+            const bill = bills.find(b => b.billNumber === billNumber);
+            if (!bill) {
+                showNotification('Bill not found!', 'error');
+                return;
+            }
+            
+            const modalTitle = document.getElementById('billModalTitle');
+            const billContent = document.getElementById('billContent');
+            
+            modalTitle.textContent = `Invoice #${bill.billNumber}`;
+            
+            // Create bill HTML with table
+            const billHTML = `
+                <div class="bill-info">
+                    <div class="bill-info-section">
+                        <h3>Business Information</h3>
+                        <div class="bill-info-item">
+                            <span class="bill-info-label">Business:</span>
+                            <span class="bill-info-value">${settings.businessName}</span>
+                        </div>
+                        <div class="bill-info-item">
+                            <span class="bill-info-label">Address:</span>
+                            <span class="bill-info-value">${settings.businessAddress}</span>
+                        </div>
+                        <div class="bill-info-item">
+                            <span class="bill-info-label">Phone:</span>
+                            <span class="bill-info-value">${settings.businessPhone}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bill-info-section">
+                        <h3>Customer Information</h3>
+                        <div class="bill-info-item">
+                            <span class="bill-info-label">Name:</span>
+                            <span class="bill-info-value">${bill.customer.name}</span>
+                        </div>
+                        <div class="bill-info-item">
+                            <span class="bill-info-label">Mobile:</span>
+                            <span class="bill-info-value">${bill.customer.mobile}</span>
+                        </div>
+                        ${bill.customer.address ? `
+                        <div class="bill-info-item">
+                            <span class="bill-info-label">Address:</span>
+                            <span class="bill-info-value">${bill.customer.address}</span>
+                        </div>
+                        ` : ''}
+                        <div class="bill-info-item">
+                            <span class="bill-info-label">Date:</span>
+                            <span class="bill-info-value">${bill.date} ${bill.time}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 style="color: var(--primary-blue); margin-bottom: 15px;">Items Purchased</h3>
+                <table class="bill-items-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Product ID</th>
+                            <th>Product Name</th>
+                            <th class="text-center">Price (Rs)</th>
+                            <th class="text-center">Quantity</th>
+                            <th class="text-right">Total (Rs)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${bill.items.map((item, index) => `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${item.id}</td>
+                            <td>${item.name}</td>
+                            <td class="text-center">${item.price.toFixed(2)}</td>
+                            <td class="text-center">${item.quantity}</td>
+                            <td class="text-right">${item.total.toFixed(2)}</td>
+                        </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                
+                <div class="bill-summary">
+                    <div class="bill-summary-row">
+                        <span>Subtotal:</span>
+                        <span>Rs ${bill.subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="bill-summary-row">
+                        <span>Tax (${settings.taxRate}%):</span>
+                        <span>Rs ${bill.tax.toFixed(2)}</span>
+                    </div>
+                    <div class="bill-summary-row total">
+                        <span>Grand Total:</span>
+                        <span>Rs ${bill.total.toFixed(2)}</span>
+                    </div>
+                </div>
+                
+                <div class="bill-footer">
+                    ${settings.receiptFooter}
+                </div>
+            `;
+            
+            billContent.innerHTML = billHTML;
+            
+            // Show modal
+            document.getElementById('billModal').classList.add('active');
         }
 
         // Print bill
         function printBill() {
-            const billContent = document.getElementById('billContent').innerHTML;
-            const originalContent = document.body.innerHTML;
-            
-            document.body.innerHTML = billContent;
             window.print();
-            document.body.innerHTML = originalContent;
-            
-            // Reinitialize the application
-            location.reload();
         }
 
-        // Download PDF
-        function downloadPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            const billContent = document.getElementById('billContent');
-            
-            html2canvas(billContent).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const imgWidth = 190;
-                const pageHeight = 280;
-                const imgHeight = canvas.height * imgWidth / canvas.width;
-                let heightLeft = imgHeight;
-                
-                let position = 10;
-                
-                doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-                
-                while (heightLeft >= 0) {
-                    position = heightLeft - imgHeight;
-                    doc.addPage();
-                    doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
-                }
-                
-                doc.save(`bill_${new Date().getTime()}.pdf`);
-            });
+        // Close bill modal
+        function closeBillModal() {
+            document.getElementById('billModal').classList.remove('active');
         }
 
-        // Save new item
-        function saveItem() {
-            const name = document.getElementById('itemName').value;
-            const price = parseFloat(document.getElementById('itemPrice').value);
-            const stock = parseInt(document.getElementById('itemStock').value);
+        // Load bills
+        function loadBills() {
+            const dateFilter = document.getElementById('billDateFilter').value;
+            const sortBy = document.getElementById('billSort').value;
             
-            if (name && !isNaN(price) && !isNaN(stock)) {
-                const newItem = {
-                    id: Date.now(),
-                    name: name,
-                    price: price,
-                    stock: stock
-                };
-                
-                items.push(newItem);
-                localStorage.setItem('items', JSON.stringify(items));
-                
-                // Save to Firebase
-                saveToFirebase(`items/${newItem.id}`, newItem);
-                
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
-                modal.hide();
-                
-                // Reset form
-                document.getElementById('addItemForm').reset();
-                
-                // Update displays
-                updateItemsDisplay();
-                updateStockDisplay();
-                updateBillingDisplay();
-                updateDashboard();
-                
-                showStatus('Item added successfully!', 'success');
-            } else {
-                showStatus('Please fill all fields correctly.', 'error');
+            let filteredBills = [...bills];
+            
+            if (dateFilter) {
+                filteredBills = filteredBills.filter(bill => bill.date === dateFilter);
             }
-        }
-
-        // Edit item
-        function editItem(index) {
-            const item = items[index];
-            const newName = prompt('Enter new name:', item.name);
-            if (newName === null) return;
             
-            const newPrice = parseFloat(prompt('Enter new price:', item.price));
-            if (isNaN(newPrice)) {
-                alert('Invalid price entered.');
+            // Sort bills
+            filteredBills.sort((a, b) => {
+                if (sortBy === 'newest') return new Date(b.date) - new Date(a.date);
+                if (sortBy === 'oldest') return new Date(a.date) - new Date(b.date);
+                if (sortBy === 'highest') return b.total - a.total;
+                if (sortBy === 'lowest') return a.total - b.total;
+                return 0;
+            });
+            
+            const tbody = document.getElementById('billsBody');
+            if (filteredBills.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No bills found</td></tr>';
                 return;
             }
             
-            items[index].name = newName;
-            items[index].price = newPrice;
-            
-            localStorage.setItem('items', JSON.stringify(items));
-            
-            // Update in Firebase
-            saveToFirebase(`items/${item.id}`, items[index]);
-            
-            updateItemsDisplay();
-            updateStockDisplay();
-            updateBillingDisplay();
-            
-            showStatus('Item updated successfully!', 'success');
+            tbody.innerHTML = filteredBills.map(bill => `
+                <tr>
+                    <td>${bill.billNumber}</td>
+                    <td>${bill.date}<br><small>${bill.time}</small></td>
+                    <td>${bill.customer.name}</td>
+                    <td>${bill.customer.mobile}</td>
+                    <td style="font-weight: 600; color: var(--success);">Rs ${bill.total.toFixed(2)}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view" onclick="viewBill('${bill.billNumber}')">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <button class="action-btn print" onclick="printBillDirectly('${bill.billNumber}')">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
         }
 
-        // Delete item
-        function deleteItem(index) {
-            if (confirm('Are you sure you want to delete this item?')) {
-                const itemId = items[index].id;
-                items.splice(index, 1);
-                localStorage.setItem('items', JSON.stringify(items));
+        // Direct print function
+        function printBillDirectly(billNumber) {
+            const bill = bills.find(b => b.billNumber === billNumber);
+            if (!bill) {
+                showNotification('Bill not found!', 'error');
+                return;
+            }
+            
+            // Create a print window
+            const printWindow = window.open('', '_blank');
+            
+            const printContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Bill #${bill.billNumber}</title>
+                    <style>
+                        body {
+                            font-family: 'Courier New', monospace;
+                            margin: 0;
+                            padding: 20px;
+                        }
+                        .bill-header {
+                            text-align: center;
+                            border-bottom: 2px solid #000;
+                            padding-bottom: 15px;
+                            margin-bottom: 20px;
+                        }
+                        .bill-info {
+                            margin-bottom: 20px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-bottom: 20px;
+                        }
+                        th, td {
+                            padding: 8px;
+                            text-align: left;
+                            border-bottom: 1px dashed #ccc;
+                        }
+                        th {
+                            background-color: #f2f2f2;
+                        }
+                        .total-row {
+                            font-weight: bold;
+                            font-size: 1.1em;
+                        }
+                        .footer {
+                            text-align: center;
+                            margin-top: 30px;
+                            padding-top: 20px;
+                            border-top: 1px dashed #000;
+                            font-size: 12px;
+                        }
+                        @media print {
+                            body {
+                                padding: 0;
+                            }
+                            .no-print {
+                                display: none;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="bill-header">
+                        <h1 style="margin: 0; font-size: 28px;">${settings.businessName}</h1>
+                        <p style="margin: 5px 0;">${settings.businessAddress}</p>
+                        <p style="margin: 5px 0;">Tel: ${settings.businessPhone}</p>
+                    </div>
+                    
+                    <div class="bill-info">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <div>
+                                <strong>INVOICE #:</strong> ${bill.billNumber}<br>
+                                <strong>DATE:</strong> ${bill.date} ${bill.time}
+                            </div>
+                            <div style="text-align: right;">
+                                <strong>CUSTOMER:</strong> ${bill.customer.name}<br>
+                                <strong>MOBILE:</strong> ${bill.customer.mobile}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Product ID</th>
+                                <th>Product Name</th>
+                                <th style="text-align: center;">Price</th>
+                                <th style="text-align: center;">Qty</th>
+                                <th style="text-align: right;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${bill.items.map((item, index) => `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${item.id}</td>
+                                <td>${item.name}</td>
+                                <td style="text-align: center;">Rs ${item.price.toFixed(2)}</td>
+                                <td style="text-align: center;">${item.quantity}</td>
+                                <td style="text-align: right;">Rs ${item.total.toFixed(2)}</td>
+                            </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div style="float: right; width: 250px;">
+                        <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+                            <span>Subtotal:</span>
+                            <span>Rs ${bill.subtotal.toFixed(2)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+                            <span>Tax (${settings.taxRate}%):</span>
+                            <span>Rs ${bill.tax.toFixed(2)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 5px 0; font-weight: bold; border-top: 2px solid #000; margin-top: 5px; padding-top: 10px;">
+                            <span>GRAND TOTAL:</span>
+                            <span>Rs ${bill.total.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    
+                    <div style="clear: both;"></div>
+                    
+                    <div class="footer">
+                        ${settings.receiptFooter}<br>
+                        Thank you for your business!
+                    </div>
+                    
+                    <div class="no-print" style="margin-top: 30px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; cursor: pointer; font-size: 16px;">
+                            Print Bill
+                        </button>
+                        <button onclick="window.close()" style="padding: 10px 20px; background: #f44336; color: white; border: none; cursor: pointer; font-size: 16px; margin-left: 10px;">
+                            Close
+                        </button>
+                    </div>
+                    
+                    <script>
+                        window.onload = function() {
+                            // Auto-print after 500ms
+                            setTimeout(function() {
+                                window.print();
+                            }, 500);
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+        }
+
+        // Update analytics
+        function updateAnalytics() {
+            const totalRevenue = bills.reduce((sum, bill) => sum + bill.total, 0);
+            const totalOrders = bills.length;
+            const productsSold = bills.reduce((sum, bill) => 
+                sum + bill.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0);
+            const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+            
+            document.getElementById('totalRevenue').textContent = 'Rs ' + totalRevenue.toFixed(2);
+            document.getElementById('totalOrders').textContent = totalOrders;
+            document.getElementById('productsSold').textContent = productsSold;
+            document.getElementById('avgOrderValue').textContent = 'Rs ' + avgOrderValue.toFixed(2);
+        }
+
+        // Edit product
+        function editProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (product) {
+                document.getElementById('productId').value = product.id;
+                document.getElementById('productName').value = product.name;
+                document.getElementById('productPrice').value = product.price;
+                document.getElementById('productStock').value = product.stock;
+                document.getElementById('productDescription').value = product.description || '';
                 
-                // Delete from Firebase
-                if (isOnline) {
-                    database.ref(`items/${itemId}`).remove();
-                }
-                
-                updateItemsDisplay();
-                updateStockDisplay();
-                updateBillingDisplay();
-                updateDashboard();
-                
-                showStatus('Item deleted successfully!', 'success');
+                showTab('add-product');
+                showNotification('Edit product details and save changes', 'info');
             }
         }
 
-        // Update stock
-        function updateStock(index) {
-            const item = items[index];
-            const newStock = parseInt(prompt(`Enter new stock for ${item.name}:`, item.stock));
-            
-            if (!isNaN(newStock) && newStock >= 0) {
-                items[index].stock = newStock;
-                localStorage.setItem('items', JSON.stringify(items));
-                
-                // Update in Firebase
-                saveToFirebase(`items/${item.id}`, items[index]);
-                
-                updateStockDisplay();
-                updateBillingDisplay();
-                updateDashboard();
-                
-                showStatus('Stock updated successfully!', 'success');
-            } else {
-                showStatus('Invalid stock value entered.', 'error');
+        // Delete product
+        function deleteProduct(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                products = products.filter(p => p.id !== productId);
+                saveProductsToFirebase().then(() => {
+                    loadProducts();
+                    loadSellingProducts();
+                    showNotification('Product deleted successfully!', 'success');
+                });
             }
         }
 
-        // Update dashboard
-        function updateDashboard() {
-            // Total items
-            document.getElementById('totalItems').textContent = items.length;
-            
-            // Today's sales
-            const today = new Date().toLocaleDateString();
-            const todayBills = bills.filter(bill => bill.date === today);
-            const todaySales = todayBills.reduce((total, bill) => total + bill.total, 0);
-            document.getElementById('todaySales').textContent = `Rs. ${todaySales.toFixed(2)}`;
-            
-            // Low stock items (less than 10)
-            const lowStockItems = items.filter(item => item.stock > 0 && item.stock < 10);
-            document.getElementById('lowStockItems').textContent = lowStockItems.length;
-            
-            // Out of stock items
-            const outOfStockItems = items.filter(item => item.stock === 0);
-            document.getElementById('outOfStock').textContent = outOfStockItems.length;
-            
-            // Recent bills
-            const recentBills = document.getElementById('recentBills');
-            recentBills.innerHTML = '';
-            
-            const sortedBills = [...bills].sort((a, b) => b.id - a.id).slice(0, 5);
-            sortedBills.forEach(bill => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${bill.id}</td>
-                    <td>${bill.date}</td>
-                    <td>Rs. ${bill.total.toFixed(2)}</td>
-                `;
-                recentBills.appendChild(row);
-            });
-            
-            // Low stock table
-            const lowStockTable = document.getElementById('lowStockTable');
-            lowStockTable.innerHTML = '';
-            
-            lowStockItems.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.name}</td>
-                    <td>${item.stock}</td>
-                `;
-                lowStockTable.appendChild(row);
-            });
+        // Clear all data
+        function clearAllData() {
+            if (confirm('WARNING: This will delete ALL data. Are you sure?')) {
+                showLoading("Clearing all data...");
+                
+                database.ref().remove()
+                    .then(() => {
+                        products = [];
+                        bills = [];
+                        cart = [];
+                        settings = {
+                            businessName: "Stationary Pro",
+                            businessAddress: "123 Main Street, City",
+                            businessPhone: "(123) 456-7890",
+                            businessEmail: "info@stationarypro.com",
+                            receiptFooter: "Thank you for your business!",
+                            taxRate: 8
+                        };
+                        
+                        loadSettingsToUI();
+                        loadProducts();
+                        loadSellingProducts();
+                        loadBills();
+                        updateAnalytics();
+                        
+                        hideLoading();
+                        showNotification('All data cleared successfully!', 'success');
+                    })
+                    .catch((error) => {
+                        hideLoading();
+                        showNotification('Error clearing data', 'error');
+                    });
+            }
         }
+
+        // Show notification
+        function showNotification(message, type) {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                ${message}
+            `;
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Export functions
+        function exportBillsToCSV() {
+            if (bills.length === 0) {
+                showNotification('No bills to export', 'error');
+                return;
+            }
+            
+            const headers = ['Bill No', 'Date', 'Customer', 'Mobile', 'Total'];
+            const csvContent = [
+                headers.join(','),
+                ...bills.map(bill => [
+                    bill.billNumber,
+                    bill.date,
+                    `"${bill.customer.name}"`,
+                    bill.customer.mobile,
+                    bill.total.toFixed(2)
+                ].join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bills_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            
+            showNotification('CSV exported successfully', 'success');
+        }
+
+        function exportAllBillsPDF() {
+            showNotification('PDF export feature coming soon', 'info');
+        }
+
+        function exportAnalyticsReport() {
+            showNotification('Analytics report export coming soon', 'info');
+        }
+
+        function resetAnalyticsFilter() {
+            document.getElementById('analyticsFromDate').value = '';
+            document.getElementById('analyticsToDate').value = '';
+            updateAnalytics();
+        }
+
+        // Make functions available globally
+        window.addToCart = addToCart;
+        window.updateCartQuantity = updateCartQuantity;
+        window.editProduct = editProduct;
+        window.deleteProduct = deleteProduct;
+        window.saveSettings = saveSettings;
+        window.viewBill = viewBill;
+        window.updateAnalytics = updateAnalytics;
+        window.resetAnalyticsFilter = resetAnalyticsFilter;
+        window.exportAnalyticsReport = exportAnalyticsReport;
+        window.exportBillsToCSV = exportBillsToCSV;
+        window.exportAllBillsPDF = exportAllBillsPDF;
+        window.clearAllData = clearAllData;
+        window.showTab = showTab;
+        window.printBill = printBill;
+        window.closeBillModal = closeBillModal;
+        window.printBillDirectly = printBillDirectly;
     </script>
 </body>
 </html>
