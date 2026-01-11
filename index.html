@@ -1287,7 +1287,7 @@
                 <!-- Add Product Tab -->
                 <div id="add-product" class="tab-content">
                     <div class="form-section">
-                        <h2 class="form-title">Add New Product</h2>
+                        <h2 class="form-title" id="productFormTitle">Add New Product</h2>
                         <form id="addProductForm">
                             <div class="form-grid">
                                 <div class="form-group">
@@ -1312,11 +1312,14 @@
                                 </div>
                             </div>
                             <div style="display: flex; gap: 10px; margin-top: 20px;">
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" class="btn btn-primary" id="productSubmitBtn">
                                     <i class="fas fa-plus"></i> Add Product
                                 </button>
-                                <button type="reset" class="btn btn-secondary">
+                                <button type="button" class="btn btn-secondary" onclick="resetProductForm()">
                                     <i class="fas fa-redo"></i> Clear Form
+                                </button>
+                                <button type="button" class="btn btn-danger" onclick="cancelEdit()" id="cancelEditBtn" style="display: none;">
+                                    <i class="fas fa-times"></i> Cancel Edit
                                 </button>
                             </div>
                         </form>
@@ -1544,6 +1547,7 @@
 
         // Connection state
         let isConnected = false;
+        let editingProductId = null;
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
@@ -1829,8 +1833,10 @@
                         updateAnalytics();
                         break;
                     case 'add-product':
-                        // Reset form when switching to add product tab
-                        document.getElementById('addProductForm').reset();
+                        // Reset form when switching to add product tab (only if not editing)
+                        if (!editingProductId) {
+                            resetProductForm();
+                        }
                         break;
                 }
             };
@@ -1843,7 +1849,11 @@
             if (addProductForm) {
                 addProductForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    addProduct();
+                    if (editingProductId) {
+                        updateProduct(editingProductId);
+                    } else {
+                        addProduct();
+                    }
                 });
             }
             
@@ -1960,13 +1970,113 @@
             // Save to Firebase
             saveProductsToFirebase().then(() => {
                 // Reset form
-                document.getElementById('addProductForm').reset();
+                resetProductForm();
                 showNotification("Product added successfully", "success");
                 
                 // Refresh product lists
                 loadProducts();
                 loadSellingProducts();
             });
+        }
+
+        // Edit product
+        function editProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) {
+                showNotification('Product not found!', 'error');
+                return;
+            }
+            
+            console.log('Editing product:', product);
+            
+            // Set editing mode
+            editingProductId = productId;
+            
+            // Fill form with product data
+            document.getElementById('productId').value = product.id;
+            document.getElementById('productName').value = product.name;
+            document.getElementById('productPrice').value = product.price;
+            document.getElementById('productStock').value = product.stock;
+            document.getElementById('productDescription').value = product.description || '';
+            
+            // Change form title and button for editing
+            document.getElementById('productFormTitle').textContent = 'Edit Product';
+            const submitBtn = document.getElementById('productSubmitBtn');
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Product';
+            
+            // Show cancel edit button
+            document.getElementById('cancelEditBtn').style.display = 'inline-flex';
+            
+            // Switch to add-product tab
+            showTab('add-product');
+            showNotification('Editing product: ' + product.name, 'info');
+        }
+
+        // Update existing product
+        function updateProduct(productId) {
+            const productIndex = products.findIndex(p => p.id === productId);
+            if (productIndex === -1) {
+                showNotification('Product not found!', 'error');
+                return;
+            }
+            
+            const productData = {
+                id: document.getElementById('productId').value.trim(),
+                name: document.getElementById('productName').value.trim(),
+                price: parseFloat(document.getElementById('productPrice').value),
+                stock: parseInt(document.getElementById('productStock').value),
+                description: document.getElementById('productDescription').value.trim()
+            };
+            
+            // Validate
+            if (!productData.id || !productData.name || isNaN(productData.price) || isNaN(productData.stock)) {
+                showNotification("Please fill all required fields correctly", "error");
+                return;
+            }
+            
+            // Check if ID is being changed to an existing one (excluding current product)
+            if (productData.id !== productId && products.find(p => p.id === productData.id)) {
+                showNotification("Product ID already exists", "error");
+                return;
+            }
+            
+            // Keep existing image if available
+            productData.image = products[productIndex].image || 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=400';
+            
+            // Update product
+            products[productIndex] = productData;
+            
+            // Save to Firebase
+            saveProductsToFirebase().then(() => {
+                // Reset form to add mode
+                resetProductForm();
+                
+                // Refresh product lists
+                loadProducts();
+                loadSellingProducts();
+                
+                showNotification("Product updated successfully", "success");
+            });
+        }
+
+        // Reset product form to add mode
+        function resetProductForm() {
+            document.getElementById('addProductForm').reset();
+            document.getElementById('productFormTitle').textContent = 'Add New Product';
+            const submitBtn = document.getElementById('productSubmitBtn');
+            submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add Product';
+            
+            // Hide cancel edit button
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            
+            // Reset editing mode
+            editingProductId = null;
+        }
+
+        // Cancel edit
+        function cancelEdit() {
+            resetProductForm();
+            showNotification('Edit cancelled', 'info');
         }
 
         // Load products for management
@@ -2665,21 +2775,6 @@
             document.getElementById('avgOrderValue').textContent = 'Rs ' + avgOrderValue.toFixed(2);
         }
 
-        // Edit product
-        function editProduct(productId) {
-            const product = products.find(p => p.id === productId);
-            if (product) {
-                document.getElementById('productId').value = product.id;
-                document.getElementById('productName').value = product.name;
-                document.getElementById('productPrice').value = product.price;
-                document.getElementById('productStock').value = product.stock;
-                document.getElementById('productDescription').value = product.description || '';
-                
-                showTab('add-product');
-                showNotification('Edit product details and save changes', 'info');
-            }
-        }
-
         // Delete product
         function deleteProduct(productId) {
             if (confirm('Are you sure you want to delete this product?')) {
@@ -2804,7 +2899,8 @@
         window.printBill = printBill;
         window.closeBillModal = closeBillModal;
         window.printBillDirectly = printBillDirectly;
+        window.resetProductForm = resetProductForm;
+        window.cancelEdit = cancelEdit;
     </script>
 </body>
 </html>
-
