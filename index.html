@@ -21,17 +21,18 @@
             min-height: 100vh;
         }
 
-        /* Floating Cart Icon */
+        /* Floating Cart Icon - Only shows count and total */
         .cart-float {
             position: fixed;
             top: 20px;
             right: 20px;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
@@ -42,12 +43,13 @@
         }
 
         .cart-float:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
             box-shadow: 0 15px 40px rgba(0,0,0,0.4);
         }
 
         .cart-float i {
             font-size: 24px;
+            margin-bottom: 2px;
         }
 
         .cart-badge {
@@ -68,19 +70,12 @@
         }
 
         .cart-total-float {
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #28a745;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
-            white-space: nowrap;
-            border: 2px solid white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.2);
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-top: 2px;
         }
 
         /* Main Container */
@@ -305,12 +300,45 @@
 
         .cart-sidebar-item {
             display: grid;
-            grid-template-columns: 1fr auto auto auto auto;
-            gap: 10px;
+            grid-template-columns: 2fr 1fr 1.5fr 1.5fr auto;
+            gap: 8px;
             align-items: center;
-            padding: 15px 0;
+            padding: 12px 0;
             border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+        }
+
+        .cart-item-qty {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
             font-size: 14px;
+        }
+
+        .qty-btn:hover {
+            background: #1e3c72;
+            color: white;
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
         }
 
         .cart-sidebar-footer {
@@ -679,7 +707,7 @@
             height: 100%;
             background: rgba(0,0,0,0.5);
             display: none;
-            z-index: 9999;
+            z-index: 9998;
         }
 
         .overlay.active {
@@ -704,15 +732,21 @@
             .items-table td {
                 padding: 8px 5px;
             }
+            
+            .cart-sidebar-item {
+                grid-template-columns: 1.5fr 1fr 1.2fr 1.2fr auto;
+                font-size: 12px;
+                gap: 5px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Floating Cart Icon -->
+    <!-- Floating Cart Icon - Shows count and total only -->
     <div class="cart-float" onclick="toggleCartSidebar()">
         <i class="fas fa-shopping-cart"></i>
-        <span class="cart-badge" id="cartBadge">0</span>
         <span class="cart-total-float" id="cartFloatTotal">Rs 0</span>
+        <span class="cart-badge" id="cartBadge">0</span>
     </div>
 
     <!-- Cart Sidebar -->
@@ -721,7 +755,7 @@
             <div class="cart-sidebar-title">
                 <i class="fas fa-shopping-cart"></i>
                 Your Cart
-                <span class="cart-count" id="sidebarCartCount">0</span>
+                <span id="sidebarCartCount">0</span>
             </div>
             <button class="cart-sidebar-close" onclick="toggleCartSidebar()">
                 <i class="fas fa-times"></i>
@@ -732,6 +766,7 @@
             <div style="text-align: center; color: #6c757d; padding: 40px;">
                 <i class="fas fa-shopping-cart" style="font-size: 48px; margin-bottom: 15px;"></i>
                 <div>Your cart is empty</div>
+                <div style="margin-top: 10px; font-size: 14px;">Add products to get started</div>
             </div>
         </div>
         
@@ -963,7 +998,7 @@
             `).join('');
         }
 
-        // Cart Functions
+        // Cart Functions - No auto open sidebar
         function addToCart(productId) {
             const product = products.find(p => p.id === productId);
             if (!product) return;
@@ -986,10 +1021,8 @@
             updateCartDisplay();
             showNotification(`${product.name} added to cart`, 'success');
             
-            // Auto show cart sidebar
-            if (!document.getElementById('cartSidebar').classList.contains('active')) {
-                toggleCartSidebar();
-            }
+            // REMOVED: Auto open sidebar
+            // Now it only updates the floating icon
         }
 
         function updateCartQuantity(productId, change) {
@@ -1025,7 +1058,7 @@
         }
 
         function updateCartDisplay() {
-            // Update floating cart
+            // Update floating cart - always visible
             const cartBadge = document.getElementById('cartBadge');
             const cartFloatTotal = document.getElementById('cartFloatTotal');
             
@@ -1045,6 +1078,7 @@
                     <div style="text-align: center; color: #6c757d; padding: 40px;">
                         <i class="fas fa-shopping-cart" style="font-size: 48px; margin-bottom: 15px;"></i>
                         <div>Your cart is empty</div>
+                        <div style="margin-top: 10px; font-size: 14px;">Add products to get started</div>
                     </div>
                 `;
                 sidebarTotal.textContent = 'Rs 0.00';
@@ -1062,7 +1096,7 @@
                 itemCount += item.quantity;
                 return `
                     <div class="cart-sidebar-item">
-                        <div style="font-weight: 600;">${item.name}</div>
+                        <div style="font-weight: 600;">${item.name.substring(0, 15)}${item.name.length > 15 ? '...' : ''}</div>
                         <div>Rs ${item.price}</div>
                         <div class="cart-item-qty">
                             <button class="qty-btn" onclick="updateCartQuantity('${item.id}', -1)">-</button>
@@ -1086,7 +1120,7 @@
             checkoutBtn.disabled = false;
         }
 
-        // Toggle Cart Sidebar
+        // Toggle Cart Sidebar - Only opens when icon is clicked
         function toggleCartSidebar() {
             const sidebar = document.getElementById('cartSidebar');
             const overlay = document.getElementById('overlay');
@@ -1098,10 +1132,10 @@
         // Close all modals
         function closeAllModals() {
             document.getElementById('cartSidebar').classList.remove('active');
-            document.getElementById('overlay').classList.remove('active');
             document.getElementById('customerModal').classList.remove('active');
             document.getElementById('billModal').classList.remove('active');
             document.getElementById('imageModal').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
         }
 
         // Image Modal Functions
