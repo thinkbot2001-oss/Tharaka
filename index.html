@@ -3,675 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stationary Shop POS System</title>
+    <title>Stationary Shop - Order Online</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Include jsPDF and html2canvas libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Include Chart.js for advanced charts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
     <style>
-        :root {
-            --primary-blue: #1a365d;
-            --secondary-blue: #2d3748;
-            --accent-blue: #3182ce;
-            --light-blue: #4299e1;
-            --light-gray: #f7fafc;
-            --white: #ffffff;
-            --success: #48bb78;
-            --warning: #ed8936;
-            --danger: #f56565;
-            --purple: #9f7aea;
-            --sidebar-width: 250px;
-            --sidebar-collapsed: 70px;
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background-color: #edf2f7;
-            color: #2d3748;
-            overflow-x: hidden;
-        }
-
-        .app-container {
-            display: flex;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            padding: 20px;
         }
 
-        /* Sidebar Styles */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: linear-gradient(180deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
-            color: var(--white);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: fixed;
-            height: 100vh;
-            z-index: 1000;
-            box-shadow: 3px 0 15px rgba(0, 0, 0, 0.1);
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
-        .sidebar.collapsed {
-            width: var(--sidebar-collapsed);
-        }
-
-        .sidebar-header {
-            padding: 25px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .business-logo {
-            width: 40px;
-            height: 40px;
-            background: var(--light-blue);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 20px;
-            margin-right: 15px;
-        }
-
-        .business-name {
-            font-size: 18px;
-            font-weight: 600;
-            white-space: nowrap;
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
+            position: relative;
             overflow: hidden;
         }
 
-        .sidebar.collapsed .business-name {
-            display: none;
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
         }
 
-        .toggle-sidebar {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-
-        .toggle-sidebar:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .sidebar-menu {
-            padding: 20px 0;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            padding: 15px 20px;
-            color: rgba(255, 255, 255, 0.9);
-            text-decoration: none;
-            transition: all 0.3s;
-            white-space: nowrap;
-            overflow: hidden;
-        }
-
-        .menu-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .menu-item.active {
-            background: var(--accent-blue);
-            color: white;
-            border-right: 4px solid white;
-        }
-
-        .menu-item i {
-            width: 24px;
-            margin-right: 15px;
-            font-size: 18px;
-        }
-
-        .sidebar.collapsed .menu-item span {
-            display: none;
-        }
-
-        .sidebar.collapsed .menu-item {
-            justify-content: center;
-        }
-
-        .sidebar.collapsed .menu-item i {
-            margin-right: 0;
-            font-size: 20px;
-        }
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            min-height: 100vh;
-        }
-
-        .main-content.expanded {
-            margin-left: var(--sidebar-collapsed);
-        }
-
-        .top-bar {
-            background: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .top-bar-left h1 {
-            font-size: 24px;
-            color: var(--primary-blue);
-            font-weight: 600;
-        }
-
-        .top-bar-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary-blue);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        /* Connection Status */
-        .connection-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .connection-status.connected {
-            background-color: rgba(72, 187, 120, 0.1);
-            color: var(--success);
-            border: 1px solid rgba(72, 187, 120, 0.2);
-        }
-
-        .connection-status.disconnected {
-            background-color: rgba(245, 101, 101, 0.1);
-            color: var(--danger);
-            border: 1px solid rgba(245, 101, 101, 0.2);
-        }
-
-        .connection-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        .connection-dot.connected {
-            background-color: var(--success);
-            animation: pulse 2s infinite;
-        }
-
-        .connection-dot.disconnected {
-            background-color: var(--danger);
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        .content-area {
-            padding: 30px;
-        }
-
-        /* Tab Content */
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Loading Overlay */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            flex-direction: column;
-            color: white;
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin {
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
 
-        /* Analytics Dashboard */
-        .analytics-dashboard {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .dashboard-controls {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .date-filter-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .date-filter-group label {
-            font-weight: 600;
-            color: var(--secondary-blue);
-        }
-
-        .date-input {
-            padding: 8px 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .filter-btn {
-            padding: 8px 16px;
-            background: var(--accent-blue);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .filter-btn:hover {
-            background: var(--light-blue);
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s, box-shadow 0.3s;
-            border-left: 4px solid var(--accent-blue);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-card i {
-            font-size: 28px;
-            color: var(--accent-blue);
+        .business-name {
+            font-size: 42px;
+            font-weight: 800;
             margin-bottom: 15px;
+            position: relative;
         }
 
-        .stat-card h3 {
-            font-size: 14px;
-            color: #718096;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-        }
-
-        .stat-card .value {
-            font-size: 32px;
-            font-weight: 700;
-            color: var(--primary-blue);
-            margin-bottom: 5px;
-        }
-
-        .stat-card .subtext {
-            font-size: 14px;
-            color: #718096;
-        }
-
-        /* Forms */
-        .form-section {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .form-title {
-            font-size: 20px;
-            color: var(--primary-blue);
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--secondary-blue);
-            font-size: 14px;
-        }
-
-        .form-control {
-            padding: 12px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+        .whatsapp-link {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: var(--accent-blue);
+            gap: 10px;
+            background: #25D366;
             color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--light-blue);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(49, 130, 206, 0.3);
-        }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #38a169;
-            transform: translateY(-2px);
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #e53e3e;
-        }
-
-        .btn-secondary {
-            background: #a0aec0;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #718096;
-        }
-
-        .btn-warning {
-            background: var(--warning);
-            color: white;
-        }
-
-        .btn-warning:hover {
-            background: #dd6b20;
-        }
-
-        .btn-purple {
-            background: var(--purple);
-            color: white;
-        }
-
-        .btn-purple:hover {
-            background: #805ad5;
-        }
-
-        /* Search and Filter */
-        .search-container {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .search-box {
-            padding: 10px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 16px;
-            flex: 1;
-            transition: all 0.3s;
-        }
-
-        .search-box:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
-        }
-
-        .filter-select {
-            padding: 10px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 16px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .filter-select:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-        }
-
-        /* Product Grid */
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .product-card {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s;
-            border: 1px solid #e2e8f0;
-        }
-
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-            border-color: var(--accent-blue);
-        }
-
-        .product-image {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-        }
-
-        .product-info {
-            padding: 20px;
-        }
-
-        .product-name {
-            font-size: 18px;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
             font-weight: 600;
-            color: var(--primary-blue);
-            margin-bottom: 10px;
+            font-size: 18px;
+            margin: 20px 0;
+            transition: all 0.3s;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
         }
 
-        .product-details {
+        .whatsapp-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(37, 211, 102, 0.4);
+        }
+
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 12px 25px;
+            border-radius: 50px;
+        }
+
+        /* Cart Section */
+        .cart-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .cart-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 15px;
-        }
-
-        .product-price {
-            color: var(--success);
-            font-weight: bold;
-            font-size: 20px;
-        }
-
-        .product-stock {
-            color: #718096;
-            font-size: 14px;
-        }
-
-        .product-stock.low {
-            color: var(--warning);
-            font-weight: 600;
-        }
-
-        .product-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        /* Selling Section */
-        .customer-form-section {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            align-items: center;
             margin-bottom: 20px;
-        }
-
-        .customer-form-title {
-            font-size: 20px;
-            color: var(--primary-blue);
-            margin-bottom: 25px;
             padding-bottom: 15px;
             border-bottom: 2px solid #e2e8f0;
         }
 
-        .customer-form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+        .cart-title {
+            font-size: 24px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .selling-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+        .cart-count {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
         }
 
-        @media (max-width: 1024px) {
-            .selling-container {
-                grid-template-columns: 1fr;
-            }
+        .clear-cart {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
         }
 
-        .products-panel, .cart-panel {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        .clear-cart:hover {
+            background: #c82333;
+            transform: translateY(-2px);
         }
 
         .cart-items {
@@ -686,6 +165,12 @@
             align-items: center;
             padding: 15px;
             border-bottom: 1px solid #e2e8f0;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .cart-item-info {
@@ -694,7 +179,13 @@
 
         .cart-item-name {
             font-weight: 600;
+            color: #2c3e50;
             margin-bottom: 5px;
+        }
+
+        .cart-item-price {
+            color: #28a745;
+            font-weight: 600;
         }
 
         .cart-item-qty {
@@ -704,188 +195,288 @@
         }
 
         .qty-btn {
-            width: 30px;
-            height: 30px;
+            width: 35px;
+            height: 35px;
             border: 1px solid #e2e8f0;
             background: white;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s;
+            font-size: 16px;
         }
 
         .qty-btn:hover {
-            background: #f7fafc;
-            border-color: var(--accent-blue);
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
         }
 
-        .cart-item-price {
-            font-weight: 600;
-            color: var(--success);
+        .remove-btn {
+            background: #dc3545 !important;
+            color: white !important;
+            border-color: #dc3545 !important;
         }
 
-        .cart-summary {
-            border-top: 2px solid #e2e8f0;
-            padding-top: 20px;
+        .remove-btn:hover {
+            background: #c82333 !important;
         }
 
         .cart-total {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            font-size: 20px;
-            font-weight: 600;
+            padding: 20px 0;
+            font-size: 24px;
+            font-weight: 700;
+            border-top: 2px solid #e2e8f0;
         }
 
-        .cart-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        /* Bills Table */
-        .bills-table {
-            width: 100%;
-            border-collapse: collapse;
+        /* Customer Form */
+        .customer-form {
             background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
         }
 
-        .bills-table th {
-            background: var(--primary-blue);
-            color: white;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-        }
-
-        .bills-table td {
-            padding: 15px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .bills-table tr:hover {
-            background: #f7fafc;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .action-btn {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
+        .form-title {
+            font-size: 22px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-group label i {
+            margin-right: 8px;
+            color: #667eea;
+        }
+
+        .form-control {
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
             transition: all 0.3s;
         }
 
-        .action-btn.view {
-            background: var(--accent-blue);
-            color: white;
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .action-btn.view:hover {
-            background: var(--light-blue);
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 20px 0;
         }
 
-        /* Admin Settings */
-        .admin-settings {
+        .product-card {
             background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.4s;
+            border: 1px solid #e9ecef;
         }
 
-        .settings-group {
-            margin-bottom: 30px;
-            padding-bottom: 30px;
-            border-bottom: 2px solid #e2e8f0;
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            border-color: #667eea;
         }
 
-        .settings-group:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
-        }
-
-        .settings-group h3 {
-            font-size: 18px;
-            color: var(--primary-blue);
-            margin-bottom: 20px;
-        }
-
-        /* Export Section */
-        .export-section {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-        }
-
-        .export-controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .date-range {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        /* Notifications */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 8px;
+        .product-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #28a745;
             color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: 600;
-            z-index: 3000;
-            animation: slideInRight 0.3s;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .product-info {
+            padding: 20px;
+        }
+
+        .product-code {
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: #f0f2ff;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+        }
+
+        .product-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .product-price {
+            font-size: 24px;
+            font-weight: 800;
+            color: #28a745;
+            margin: 15px 0;
+        }
+
+        .add-to-cart-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .add-to-cart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Order Button */
+        .order-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            transition: all 0.3s;
+        }
+
+        .order-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(40, 167, 69, 0.3);
+        }
+
+        .order-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Share Options */
+        .share-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .share-title {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .share-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .share-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
             display: flex;
             align-items: center;
             gap: 10px;
+            transition: all 0.3s;
         }
 
-        .notification.success {
-            background: var(--success);
+        .share-wa {
+            background: #25D366;
+            color: white;
         }
 
-        .notification.error {
-            background: var(--danger);
+        .share-wa:hover {
+            background: #128C7E;
+            transform: translateY(-2px);
         }
 
-        .notification.info {
-            background: var(--accent-blue);
+        .share-email {
+            background: #EA4335;
+            color: white;
         }
 
-        .notification.warning {
-            background: var(--warning);
+        .share-email:hover {
+            background: #D32F2F;
+            transform: translateY(-2px);
         }
 
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        .share-copy {
+            background: #667eea;
+            color: white;
         }
 
-        /* Bill Modal Styles */
+        .share-copy:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        /* Bill Modal */
         .bill-modal {
             position: fixed;
             top: 0;
@@ -896,7 +487,7 @@
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 2000;
+            z-index: 10000;
             padding: 20px;
         }
 
@@ -904,235 +495,173 @@
             display: flex;
         }
 
-        .bill-container {
+        .bill-content {
             background: white;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 800px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .bill-header {
-            background: var(--primary-blue);
-            color: white;
-            padding: 25px 30px;
-            border-radius: 12px 12px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .bill-header h2 {
-            margin: 0;
-            font-size: 24px;
+            padding: 30px;
+            position: relative;
         }
 
         .bill-close {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #dc3545;
             color: white;
-            width: 40px;
-            height: 40px;
+            border: none;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s;
         }
 
-        .bill-close:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .bill-content {
-            padding: 30px;
-        }
-
-        .bill-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
+        .bill-header {
+            text-align: center;
+            margin-bottom: 25px;
             padding-bottom: 20px;
             border-bottom: 2px solid #e2e8f0;
         }
 
-        .bill-info-section h3 {
-            margin: 0 0 15px 0;
-            color: var(--primary-blue);
-            font-size: 18px;
+        .bill-header h2 {
+            color: #2c3e50;
+            margin-bottom: 5px;
         }
 
-        .bill-info-item {
-            margin-bottom: 8px;
+        .bill-details {
+            margin-bottom: 20px;
+        }
+
+        .bill-row {
             display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
         }
 
-        .bill-info-label {
-            font-weight: 600;
-            width: 120px;
-            color: #4a5568;
+        .bill-items {
+            margin: 20px 0;
         }
 
-        .bill-info-value {
-            flex: 1;
-        }
-
-        .bill-items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 25px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .bill-items-table th {
-            background: var(--primary-blue);
-            color: white;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-        }
-
-        .bill-items-table td {
-            padding: 15px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .bill-items-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .bill-items-table .text-right {
-            text-align: right;
-        }
-
-        .bill-items-table .text-center {
-            text-align: center;
-        }
-
-        .bill-summary {
-            background: #f7fafc;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .bill-summary-row {
+        .bill-item {
             display: flex;
             justify-content: space-between;
             padding: 10px 0;
-            font-size: 16px;
+            border-bottom: 1px dashed #e2e8f0;
         }
 
-        .bill-summary-row.total {
+        .bill-total {
             font-size: 20px;
             font-weight: 700;
-            color: var(--primary-blue);
+            color: #28a745;
+            text-align: right;
+            margin-top: 20px;
+            padding-top: 20px;
             border-top: 2px solid #e2e8f0;
-            margin-top: 10px;
-            padding-top: 15px;
         }
 
         .bill-footer {
             text-align: center;
-            margin-top: 30px;
+            margin-top: 25px;
             padding-top: 20px;
-            border-top: 1px dashed #cbd5e0;
-            color: #718096;
-            font-size: 14px;
+            border-top: 1px dashed #e2e8f0;
+            color: #6c757d;
         }
 
-        .bill-actions {
+        .share-bill-btns {
             display: flex;
-            gap: 15px;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
             justify-content: center;
-            padding: 20px;
-            background: #f7fafc;
-            border-radius: 0 0 12px 12px;
-        }
-
-        /* Print Styles */
-        @media print {
-            .bill-modal {
-                position: static;
-                background: white;
-            }
-            
-            .bill-container {
-                max-width: 100%;
-                max-height: none;
-                box-shadow: none;
-                border-radius: 0;
-            }
-            
-            .bill-close,
-            .bill-actions {
-                display: none !important;
-            }
-        }
-
-        /* Bill in Bill History */
-        .bill-history-item {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border: 1px solid #e2e8f0;
-            transition: all 0.3s;
-        }
-
-        .bill-history-item:hover {
-            border-color: var(--accent-blue);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .bill-history-header {
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .bill-history-number {
-            font-weight: 700;
-            color: var(--primary-blue);
-            font-size: 18px;
-        }
-
-        .bill-history-date {
-            color: #718096;
-            font-size: 14px;
-        }
-
-        .bill-history-customer {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-
-        .bill-history-amount {
-            text-align: right;
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--success);
-        }
-
-        .action-btn.print {
-            background: var(--success);
+            z-index: 10001;
+            flex-direction: column;
             color: white;
         }
 
-        .action-btn.print:hover {
-            background: #38a169;
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 10002;
+            animation: slideInRight 0.3s;
+        }
+
+        .notification.success {
+            background: #28a745;
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        .notification.info {
+            background: #17a2b8;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .business-name {
+                font-size: 32px;
+            }
+            
+            .whatsapp-link {
+                padding: 12px 25px;
+                font-size: 16px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .share-buttons {
+                flex-direction: column;
+            }
+            
+            .share-btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -1140,380 +669,148 @@
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
-        <div id="loadingText">Initializing System...</div>
+        <div id="loadingText">Processing...</div>
     </div>
 
-    <div class="app-container">
-        <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div style="display: flex; align-items: center;">
-                    <div class="business-logo" id="businessLogo">S</div>
-                    <div class="business-name" id="businessName">Stationary Pro</div>
+    <!-- Bill Modal -->
+    <div class="bill-modal" id="billModal">
+        <div class="bill-content" id="billContent">
+            <button class="bill-close" onclick="closeBillModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="billHTML"></div>
+            <div class="share-bill-btns">
+                <button class="share-btn share-wa" onclick="shareBillWhatsApp()" style="flex: 1;">
+                    <i class="fab fa-whatsapp"></i> Share via WhatsApp
+                </button>
+                <button class="share-btn share-copy" onclick="copyBillToClipboard()" style="flex: 1;">
+                    <i class="fas fa-copy"></i> Copy Bill
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="business-name" id="businessName">Stationary Pro</h1>
+            
+            <!-- WhatsApp Business Link -->
+            <a href="https://wa.me/message/PXJAOOO7SHJQD1" target="_blank" class="whatsapp-link">
+                <i class="fab fa-whatsapp fa-2x"></i>
+                <span>Chat with us on WhatsApp</span>
+            </a>
+            
+            <div class="contact-info">
+                <div class="contact-item">
+                    <i class="fas fa-phone-alt"></i>
+                    <span id="phoneNumber">(123) 456-7890</span>
                 </div>
-                <button class="toggle-sidebar" id="toggleSidebar">
-                    <i class="fas fa-chevron-left"></i>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span id="email">info@stationarypro.com</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span id="address">123 Main Street, City</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cart Section -->
+        <div class="cart-section">
+            <div class="cart-header">
+                <div class="cart-title">
+                    <i class="fas fa-shopping-cart"></i>
+                    Temporary Cart
+                    <span class="cart-count" id="cartCount">0</span>
+                </div>
+                <button class="clear-cart" onclick="clearCart()">
+                    <i class="fas fa-trash"></i> Clear Cart
                 </button>
             </div>
             
-            <div class="sidebar-menu">
-                <a href="#" class="menu-item active" data-tab="analytics">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Analytics Dashboard</span>
-                </a>
-                <a href="#" class="menu-item" data-tab="products">
-                    <i class="fas fa-boxes"></i>
-                    <span>Products</span>
-                </a>
-                <a href="#" class="menu-item" data-tab="add-product">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Add Product</span>
-                </a>
-                <a href="#" class="menu-item" data-tab="selling">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span>Selling</span>
-                </a>
-                <a href="#" class="menu-item" data-tab="bills">
-                    <i class="fas fa-receipt"></i>
-                    <span>Bills History</span>
-                </a>
-                <a href="#" class="menu-item" data-tab="admin">
-                    <i class="fas fa-cog"></i>
-                    <span>Admin Settings</span>
-                </a>
+            <div class="cart-items" id="cartItems">
+                <div style="text-align: center; color: #6c757d; padding: 40px;">
+                    <i class="fas fa-shopping-cart" style="font-size: 48px; margin-bottom: 15px;"></i>
+                    <div>Your cart is empty</div>
+                    <div style="margin-top: 10px; font-size: 14px;">Add products from below</div>
+                </div>
+            </div>
+            
+            <div class="cart-total">
+                <span>Total Amount:</span>
+                <span id="cartTotal">Rs 0.00</span>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="main-content" id="mainContent">
-            <div class="top-bar">
-                <div class="top-bar-left">
-                    <h1 id="pageTitle">Analytics Dashboard</h1>
+        <!-- Customer Form -->
+        <div class="customer-form">
+            <h3 class="form-title">
+                <i class="fas fa-user"></i> Customer Details
+            </h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Full Name *</label>
+                    <input type="text" id="customerName" class="form-control" placeholder="Enter your full name" required>
                 </div>
-                <div class="top-bar-right">
-                    <!-- Connection Status -->
-                    <div class="connection-status disconnected" id="connectionStatus">
-                        <span class="connection-dot disconnected" id="connectionDot"></span>
-                        <span id="connectionText">Offline</span>
-                    </div>
-                    
-                    <div class="user-profile">
-                        <div class="user-avatar">A</div>
-                        <span>Admin</span>
-                    </div>
+                <div class="form-group">
+                    <label><i class="fas fa-phone"></i> Contact Number 1 *</label>
+                    <input type="tel" id="customerPhone1" class="form-control" placeholder="Enter primary number" required>
                 </div>
-            </div>
-
-            <div class="content-area">
-                <!-- Analytics Dashboard Tab -->
-                <div id="analytics" class="tab-content active">
-                    <div class="analytics-dashboard">
-                        <div class="dashboard-controls">
-                            <div class="date-filter-group">
-                                <label>Date Range:</label>
-                                <input type="date" id="analyticsFromDate" class="date-input">
-                                <span>to</span>
-                                <input type="date" id="analyticsToDate" class="date-input">
-                                <button class="filter-btn" onclick="updateAnalytics()">
-                                    <i class="fas fa-filter"></i> Apply Filter
-                                </button>
-                                <button class="btn btn-secondary" onclick="resetAnalyticsFilter()">
-                                    <i class="fas fa-redo"></i> Reset
-                                </button>
-                            </div>
-                            <div style="margin-left: auto;">
-                                <button class="btn btn-purple" onclick="exportAnalyticsReport()">
-                                    <i class="fas fa-download"></i> Export Report
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="dashboard-grid">
-                            <div class="stat-card">
-                                <i class="fas fa-dollar-sign"></i>
-                                <h3>Total Revenue</h3>
-                                <div class="value" id="totalRevenue">Rs 0.00</div>
-                                <div class="subtext" id="revenueChange">No data available</div>
-                            </div>
-                            <div class="stat-card">
-                                <i class="fas fa-shopping-cart"></i>
-                                <h3>Total Orders</h3>
-                                <div class="value" id="totalOrders">0</div>
-                                <div class="subtext" id="ordersChange">No data available</div>
-                            </div>
-                            <div class="stat-card">
-                                <i class="fas fa-cube"></i>
-                                <h3>Products Sold</h3>
-                                <div class="value" id="productsSold">0</div>
-                                <div class="subtext" id="productsChange">No data available</div>
-                            </div>
-                            <div class="stat-card">
-                                <i class="fas fa-users"></i>
-                                <h3>Average Order Value</h3>
-                                <div class="value" id="avgOrderValue">Rs 0.00</div>
-                                <div class="subtext" id="aovChange">No data available</div>
-                            </div>
-                        </div>
-
-                        <!-- Charts will be loaded here -->
-                        <div id="chartsContainer">
-                            <div style="text-align: center; padding: 50px; color: #718096;">
-                                <i class="fas fa-chart-bar" style="font-size: 48px; margin-bottom: 20px;"></i>
-                                <div>Charts will appear here when data is available</div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label><i class="fas fa-phone-alt"></i> Contact Number 2</label>
+                    <input type="tel" id="customerPhone2" class="form-control" placeholder="Enter secondary number (optional)">
                 </div>
-
-                <!-- Products Tab -->
-                <div id="products" class="tab-content">
-                    <div class="search-container">
-                        <input type="text" class="search-box" id="productSearch" placeholder="Search products...">
-                        <select class="filter-select" id="stockFilter">
-                            <option value="">All Stock</option>
-                            <option value="low">Low Stock (&lt;20)</option>
-                            <option value="out">Out of Stock</option>
-                            <option value="in">In Stock</option>
-                        </select>
-                    </div>
-                    <div class="products-grid" id="productGrid">
-                        <div style="grid-column:1/-1; text-align:center; padding:40px; color:#718096;">
-                            <i class="fas fa-boxes" style="font-size: 48px; margin-bottom: 20px;"></i>
-                            <div>No products found</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add Product Tab -->
-                <div id="add-product" class="tab-content">
-                    <div class="form-section">
-                        <h2 class="form-title" id="productFormTitle">Add New Product</h2>
-                        <form id="addProductForm">
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="productId">Product ID *</label>
-                                    <input type="text" id="productId" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="productName">Product Name *</label>
-                                    <input type="text" id="productName" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="productPrice">Price (Rs) *</label>
-                                    <input type="number" id="productPrice" class="form-control" step="0.01" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="productStock">Stock Quantity *</label>
-                                    <input type="number" id="productStock" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="productDescription">Description</label>
-                                    <textarea id="productDescription" class="form-control" rows="3"></textarea>
-                                </div>
-                            </div>
-                            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                                <button type="submit" class="btn btn-primary" id="productSubmitBtn">
-                                    <i class="fas fa-plus"></i> Add Product
-                                </button>
-                                <button type="button" class="btn btn-secondary" onclick="resetProductForm()">
-                                    <i class="fas fa-redo"></i> Clear Form
-                                </button>
-                                <button type="button" class="btn btn-danger" onclick="cancelEdit()" id="cancelEditBtn" style="display: none;">
-                                    <i class="fas fa-times"></i> Cancel Edit
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Selling Tab -->
-                <div id="selling" class="tab-content">
-                    <div class="customer-form-section">
-                        <h3 class="customer-form-title">Customer Information</h3>
-                        <div class="customer-form-grid">
-                            <div class="form-group">
-                                <label for="customerName">Customer Name *</label>
-                                <input type="text" id="customerName" class="form-control" placeholder="Enter customer name" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="customerMobile">Mobile Number *</label>
-                                <input type="tel" id="customerMobile" class="form-control" placeholder="Enter mobile number" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="customerAddress">Address</label>
-                                <textarea id="customerAddress" class="form-control" rows="2" placeholder="Enter customer address"></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="selling-container">
-                        <div class="products-panel">
-                            <h2 style="color: var(--primary-blue); margin-bottom: 20px;">Available Products</h2>
-                            <div class="search-container">
-                                <input type="text" class="search-box" id="sellingSearch" placeholder="Search products...">
-                            </div>
-                            <div class="products-grid" id="sellingProductGrid" style="overflow-y: auto; max-height: 500px;">
-                                <div style="text-align:center; padding:40px; color:#718096;">
-                                    <i class="fas fa-boxes" style="font-size: 48px; margin-bottom: 20px;"></i>
-                                    <div>No products found</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="cart-panel">
-                            <h2 style="color: var(--primary-blue); margin-bottom: 20px;">Shopping Cart</h2>
-                            <div class="cart-items" id="cartItems">
-                                <div style="text-align: center; color: #718096; padding: 40px 0;">
-                                    <i class="fas fa-shopping-cart" style="font-size: 48px; margin-bottom: 15px;"></i>
-                                    <div>Your cart is empty</div>
-                                </div>
-                            </div>
-                            <div class="cart-summary">
-                                <div class="cart-total">
-                                    <span>Total:</span>
-                                    <span id="cartTotal">Rs 0.00</span>
-                                </div>
-                                <div class="cart-actions">
-                                    <button class="btn btn-success" id="checkoutBtn">
-                                        <i class="fas fa-credit-card"></i> Checkout
-                                    </button>
-                                    <button class="btn btn-danger" id="clearCartBtn">
-                                        <i class="fas fa-trash"></i> Clear Cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Bills History Tab -->
-                <div id="bills" class="tab-content">
-                    <div class="export-section">
-                        <h3 style="color: var(--primary-blue); margin-bottom: 15px;">Export Bill History</h3>
-                        <div class="export-controls">
-                            <div class="date-range">
-                                <label style="font-weight: 600;">From:</label>
-                                <input type="date" id="exportFromDate" class="form-control">
-                                <label style="font-weight: 600;">To:</label>
-                                <input type="date" id="exportToDate" class="form-control">
-                            </div>
-                            <button class="btn btn-primary" onclick="exportBillsToCSV()">
-                                <i class="fas fa-file-csv"></i> Export to CSV
-                            </button>
-                            <button class="btn btn-danger" onclick="exportAllBillsPDF()">
-                                <i class="fas fa-file-pdf"></i> Export to PDF
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="search-container">
-                        <input type="date" class="search-box" id="billDateFilter">
-                        <select class="filter-select" id="billSort">
-                            <option value="newest">Newest First</option>
-                            <option value="oldest">Oldest First</option>
-                            <option value="highest">Highest Amount</option>
-                            <option value="lowest">Lowest Amount</option>
-                        </select>
-                    </div>
-
-                    <div class="form-section">
-                        <table class="bills-table">
-                            <thead>
-                                <tr>
-                                    <th>Bill No</th>
-                                    <th>Date & Time</th>
-                                    <th>Customer Name</th>
-                                    <th>Mobile</th>
-                                    <th>Total Amount</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="billsBody">
-                                <tr><td colspan="6" style="text-align: center; padding: 40px;">No bills found</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Admin Settings Tab -->
-                <div id="admin" class="tab-content">
-                    <div class="admin-settings">
-                        <div class="settings-group">
-                            <h3>Business Information</h3>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="businessNameInput">Business Name</label>
-                                    <input type="text" id="businessNameInput" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label for="businessAddress">Business Address</label>
-                                    <textarea id="businessAddress" class="form-control" rows="2"></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="businessPhone">Phone Number</label>
-                                    <input type="tel" id="businessPhone" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label for="businessEmail">Email Address</label>
-                                    <input type="email" id="businessEmail" class="form-control">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="settings-group">
-                            <h3>Receipt Settings</h3>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="receiptFooter">Receipt Footer Text</label>
-                                    <textarea id="receiptFooter" class="form-control" rows="2">Thank you for your business!</textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="taxRate">Tax Rate (%)</label>
-                                    <input type="number" id="taxRate" class="form-control" value="8" step="0.1">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn btn-primary" onclick="saveSettings()">
-                                <i class="fas fa-save"></i> Save Settings
-                            </button>
-                            <button class="btn btn-warning" onclick="clearAllData()">
-                                <i class="fas fa-trash"></i> Clear All Data
-                            </button>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Delivery Address *</label>
+                    <textarea id="customerAddress" class="form-control" rows="2" placeholder="Enter delivery address" required></textarea>
                 </div>
             </div>
         </div>
 
-        <!-- Bill Modal -->
-        <div class="bill-modal" id="billModal">
-            <div class="bill-container">
-                <div class="bill-header">
-                    <h2 id="billModalTitle">Invoice</h2>
-                    <button class="bill-close" onclick="closeBillModal()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div class="bill-content" id="billContent">
-                    <!-- Bill content will be loaded here -->
-                </div>
-                
-                <div class="bill-actions">
-                    <button class="btn btn-primary" onclick="printBill()">
-                        <i class="fas fa-print"></i> Print Bill
-                    </button>
-                    <button class="btn btn-secondary" onclick="closeBillModal()">
-                        <i class="fas fa-times"></i> Close
-                    </button>
-                </div>
+        <!-- Place Order Button -->
+        <button class="order-btn" id="placeOrderBtn" onclick="placeOrder()" disabled>
+            <i class="fas fa-check-circle"></i>
+            <span>Place Order Now</span>
+            <i class="fas fa-arrow-right"></i>
+        </button>
+
+        <!-- Products Grid -->
+        <h2 style="color: white; margin: 30px 0 20px; text-align: center;">Our Products</h2>
+        <div class="products-grid" id="productsGrid">
+            <div style="grid-column: 1/-1; text-align: center; padding: 50px; color: white;">
+                <i class="fas fa-spinner fa-spin fa-3x"></i>
+                <div style="margin-top: 20px;">Loading products...</div>
             </div>
         </div>
 
-        <!-- Notification Container -->
-        <div id="notificationContainer"></div>
+        <!-- Share Section -->
+        <div class="share-section">
+            <div class="share-title">
+                <i class="fas fa-share-alt"></i> Share This Catalog
+            </div>
+            <div class="share-buttons">
+                <button class="share-btn share-wa" onclick="shareCatalogWhatsApp()">
+                    <i class="fab fa-whatsapp"></i> Share on WhatsApp
+                </button>
+                <button class="share-btn share-email" onclick="shareCatalogEmail()">
+                    <i class="fas fa-envelope"></i> Share via Email
+                </button>
+                <button class="share-btn share-copy" onclick="copyCatalogLink()">
+                    <i class="fas fa-link"></i> Copy Link
+                </button>
+            </div>
+        </div>
     </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <script>
         // Firebase configuration
@@ -1531,107 +828,35 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Initialize data
+        // Global variables
         let products = [];
-        let bills = [];
         let cart = [];
-        let settings = {
-            businessName: "Stationary Pro",
-            businessAddress: "123 Main Street, City",
-            businessPhone: "(123) 456-7890",
-            businessEmail: "info@stationarypro.com",
-            logo: null,
-            receiptFooter: "Thank you for your business!",
-            taxRate: 8
-        };
+        let settings = {};
+        let currentBill = null;
 
-        // Connection state
-        let isConnected = false;
-        let editingProductId = null;
-
-        // Initialize the application
+        // Load data on page load
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("Initializing POS System...");
-            showLoading("Initializing System...");
-            
-            initSidebar();
-            initNavigation();
-            initForms();
-            
-            // Setup connection monitoring
-            setupConnectionMonitoring();
-            
-            // Load data
             loadData();
             
-            // Hide loading after 2 seconds
-            setTimeout(() => {
-                hideLoading();
-            }, 2000);
+            // Check cart on input change
+            document.getElementById('customerName').addEventListener('input', checkOrderButton);
+            document.getElementById('customerPhone1').addEventListener('input', checkOrderButton);
+            document.getElementById('customerAddress').addEventListener('input', checkOrderButton);
         });
 
-        // Setup connection monitoring
-        function setupConnectionMonitoring() {
-            const connectedRef = database.ref(".info/connected");
-            
-            connectedRef.on("value", function(snap) {
-                isConnected = snap.val() === true;
-                updateConnectionStatus(isConnected);
-                
-                if (isConnected) {
-                    console.log("✅ Connected to Firebase");
-                    showNotification("Connected to server", "success");
-                } else {
-                    console.log("❌ Disconnected from Firebase");
-                    showNotification("Working offline", "warning");
-                }
-            });
-        }
-
-        // Update connection status UI
-        function updateConnectionStatus(connected) {
-            const status = document.getElementById('connectionStatus');
-            const dot = document.getElementById('connectionDot');
-            const text = document.getElementById('connectionText');
-            
-            if (connected) {
-                status.className = 'connection-status connected';
-                dot.className = 'connection-dot connected';
-                text.textContent = 'Online';
-            } else {
-                status.className = 'connection-status disconnected';
-                dot.className = 'connection-dot disconnected';
-                text.textContent = 'Offline';
-            }
-        }
-
-        // Show loading overlay
-        function showLoading(message) {
-            const overlay = document.getElementById('loadingOverlay');
-            const text = document.getElementById('loadingText');
-            if (overlay) overlay.style.display = 'flex';
-            if (text && message) text.textContent = message;
-        }
-
-        // Hide loading overlay
-        function hideLoading() {
-            const overlay = document.getElementById('loadingOverlay');
-            if (overlay) overlay.style.display = 'none';
-        }
-
-        // Load all data from Firebase
+        // Load data from Firebase
         function loadData() {
-            showLoading("Loading data...");
+            showLoading("Loading products...");
             
-            // Load settings first
+            // Load settings
             database.ref('settings').once('value').then((snapshot) => {
                 const data = snapshot.val();
                 if (data) {
-                    settings = { ...settings, ...data };
+                    settings = data;
+                    updateBusinessInfo();
                 }
-                loadSettingsToUI();
                 
-                // Then load products
+                // Load products
                 return database.ref('products').once('value');
             }).then((snapshot) => {
                 const data = snapshot.val();
@@ -1639,522 +864,60 @@
                     products = Object.keys(data).map(key => ({
                         id: key,
                         ...data[key]
-                    }));
-                } else {
-                    products = [];
+                    })).filter(p => p.stock > 0); // Only show in-stock products
                 }
-                loadProducts();
-                loadSellingProducts();
                 
-                // Then load bills
-                return database.ref('bills').once('value');
-            }).then((snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    bills = Object.keys(data).map(key => ({
-                        billNumber: key,
-                        ...data[key]
-                    }));
-                } else {
-                    bills = [];
-                }
-                loadBills();
-                updateAnalytics();
-                
+                displayProducts();
                 hideLoading();
-                showNotification("Data loaded successfully", "success");
             }).catch((error) => {
                 console.error("Error loading data:", error);
                 hideLoading();
-                showNotification("Error loading data", "error");
+                showNotification("Error loading products", "error");
             });
         }
 
-        // Save products to Firebase
-        function saveProductsToFirebase() {
-            if (!isConnected) {
-                showNotification("Cannot save - working offline", "warning");
-                return Promise.resolve();
-            }
-            
-            showLoading("Saving products...");
-            
-            // Convert array to object
-            const productsObj = {};
-            products.forEach(product => {
-                productsObj[product.id] = product;
-            });
-            
-            return database.ref('products').set(productsObj)
-                .then(() => {
-                    console.log("Products saved successfully");
-                    hideLoading();
-                    showNotification("Products saved successfully", "success");
-                    return true;
-                })
-                .catch((error) => {
-                    console.error("Error saving products:", error);
-                    hideLoading();
-                    showNotification("Error saving products", "error");
-                    return false;
-                });
+        // Update business info
+        function updateBusinessInfo() {
+            document.getElementById('businessName').textContent = settings.businessName || 'Stationary Pro';
+            document.getElementById('phoneNumber').textContent = settings.businessPhone || '(123) 456-7890';
+            document.getElementById('email').textContent = settings.businessEmail || 'info@stationarypro.com';
+            document.getElementById('address').textContent = settings.businessAddress || '123 Main Street, City';
         }
 
-        // Save bills to Firebase
-        function saveBillsToFirebase() {
-            if (!isConnected) {
-                showNotification("Cannot save - working offline", "warning");
-                return Promise.resolve();
-            }
+        // Display products
+        function displayProducts() {
+            const grid = document.getElementById('productsGrid');
             
-            showLoading("Saving bills...");
-            
-            // Convert array to object
-            const billsObj = {};
-            bills.forEach(bill => {
-                billsObj[bill.billNumber] = bill;
-            });
-            
-            return database.ref('bills').set(billsObj)
-                .then(() => {
-                    console.log("Bills saved successfully");
-                    hideLoading();
-                    return true;
-                })
-                .catch((error) => {
-                    console.error("Error saving bills:", error);
-                    hideLoading();
-                    showNotification("Error saving bills", "error");
-                    return false;
-                });
-        }
-
-        // Save settings to Firebase
-        function saveSettingsToFirebase() {
-            if (!isConnected) {
-                showNotification("Cannot save - working offline", "warning");
-                return Promise.resolve();
-            }
-            
-            showLoading("Saving settings...");
-            
-            return database.ref('settings').set(settings)
-                .then(() => {
-                    console.log("Settings saved successfully");
-                    hideLoading();
-                    showNotification("Settings saved successfully", "success");
-                    return true;
-                })
-                .catch((error) => {
-                    console.error("Error saving settings:", error);
-                    hideLoading();
-                    showNotification("Error saving settings", "error");
-                    return false;
-                });
-        }
-
-        // Sidebar functionality
-        function initSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const toggleBtn = document.getElementById('toggleSidebar');
-            const menuItems = document.querySelectorAll('.menu-item');
-            
-            toggleBtn.addEventListener('click', function() {
-                sidebar.classList.toggle('collapsed');
-                document.getElementById('mainContent').classList.toggle('expanded');
-                
-                const icon = this.querySelector('i');
-                icon.classList.toggle('fa-chevron-left');
-                icon.classList.toggle('fa-chevron-right');
-            });
-            
-            menuItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    menuItems.forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    const tabId = this.dataset.tab;
-                    showTab(tabId);
-                    
-                    if (window.innerWidth < 1024) {
-                        sidebar.classList.add('collapsed');
-                        document.getElementById('mainContent').classList.add('expanded');
-                    }
-                });
-            });
-        }
-
-        // Tab navigation
-        function initNavigation() {
-            // Make the function globally accessible
-            window.showTab = function(tabId) {
-                console.log("Switching to tab:", tabId);
-                
-                // Hide all tabs
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                
-                // Show the selected tab
-                const tab = document.getElementById(tabId);
-                if (tab) {
-                    tab.classList.add('active');
-                } else {
-                    console.error("Tab not found:", tabId);
-                    return;
-                }
-                
-                // Update page title
-                const pageTitle = document.getElementById('pageTitle');
-                const tabNames = {
-                    'analytics': 'Analytics Dashboard',
-                    'products': 'Products',
-                    'add-product': 'Add Product',
-                    'selling': 'Selling',
-                    'bills': 'Bills History',
-                    'admin': 'Admin Settings'
-                };
-                pageTitle.textContent = tabNames[tabId] || 'Dashboard';
-                
-                // Refresh content based on which tab is shown
-                switch(tabId) {
-                    case 'products':
-                        loadProducts();
-                        break;
-                    case 'selling':
-                        loadSellingProducts();
-                        break;
-                    case 'bills':
-                        loadBills();
-                        break;
-                    case 'analytics':
-                        updateAnalytics();
-                        break;
-                    case 'add-product':
-                        // Reset form when switching to add product tab (only if not editing)
-                        if (!editingProductId) {
-                            resetProductForm();
-                        }
-                        break;
-                }
-            };
-        }
-
-        // Initialize forms
-        function initForms() {
-            // Add product form
-            const addProductForm = document.getElementById('addProductForm');
-            if (addProductForm) {
-                addProductForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    if (editingProductId) {
-                        updateProduct(editingProductId);
-                    } else {
-                        addProduct();
-                    }
-                });
-            }
-            
-            // Checkout button
-            const checkoutBtn = document.getElementById('checkoutBtn');
-            if (checkoutBtn) {
-                checkoutBtn.addEventListener('click', checkout);
-            }
-            
-            // Clear cart button
-            const clearCartBtn = document.getElementById('clearCartBtn');
-            if (clearCartBtn) {
-                clearCartBtn.addEventListener('click', clearCart);
-            }
-            
-            // Search and filter listeners
-            const productSearch = document.getElementById('productSearch');
-            if (productSearch) {
-                productSearch.addEventListener('input', loadProducts);
-            }
-            
-            const stockFilter = document.getElementById('stockFilter');
-            if (stockFilter) {
-                stockFilter.addEventListener('change', loadProducts);
-            }
-            
-            const sellingSearch = document.getElementById('sellingSearch');
-            if (sellingSearch) {
-                sellingSearch.addEventListener('input', loadSellingProducts);
-            }
-            
-            const billDateFilter = document.getElementById('billDateFilter');
-            if (billDateFilter) {
-                billDateFilter.addEventListener('change', loadBills);
-            }
-            
-            const billSort = document.getElementById('billSort');
-            if (billSort) {
-                billSort.addEventListener('change', loadBills);
-            }
-            
-            // Escape key to close bill modal
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeBillModal();
-                }
-            });
-            
-            // Click outside to close bill modal
-            document.getElementById('billModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeBillModal();
-                }
-            });
-        }
-
-        // Load settings to UI
-        function loadSettingsToUI() {
-            document.getElementById('businessNameInput').value = settings.businessName;
-            document.getElementById('businessAddress').value = settings.businessAddress;
-            document.getElementById('businessPhone').value = settings.businessPhone;
-            document.getElementById('businessEmail').value = settings.businessEmail;
-            document.getElementById('receiptFooter').value = settings.receiptFooter;
-            document.getElementById('taxRate').value = settings.taxRate;
-            
-            document.getElementById('businessName').textContent = settings.businessName;
-            document.getElementById('businessLogo').textContent = settings.businessName.charAt(0);
-        }
-
-        // Save settings
-        function saveSettings() {
-            settings.businessName = document.getElementById('businessNameInput').value;
-            settings.businessAddress = document.getElementById('businessAddress').value;
-            settings.businessPhone = document.getElementById('businessPhone').value;
-            settings.businessEmail = document.getElementById('businessEmail').value;
-            settings.receiptFooter = document.getElementById('receiptFooter').value;
-            settings.taxRate = parseFloat(document.getElementById('taxRate').value);
-            
-            // Save to Firebase
-            saveSettingsToFirebase().then(() => {
-                document.getElementById('businessName').textContent = settings.businessName;
-                document.getElementById('businessLogo').textContent = settings.businessName.charAt(0);
-            });
-        }
-
-        // Add product
-        function addProduct() {
-            const product = {
-                id: document.getElementById('productId').value.trim(),
-                name: document.getElementById('productName').value.trim(),
-                price: parseFloat(document.getElementById('productPrice').value),
-                stock: parseInt(document.getElementById('productStock').value),
-                description: document.getElementById('productDescription').value.trim()
-            };
-            
-            // Validate
-            if (!product.id || !product.name || isNaN(product.price) || isNaN(product.stock)) {
-                showNotification("Please fill all required fields correctly", "error");
-                return;
-            }
-            
-            // Check if product exists
-            if (products.find(p => p.id === product.id)) {
-                showNotification("Product ID already exists", "error");
-                return;
-            }
-            
-            // Add default image
-            product.image = 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=400';
-            
-            // Add to products array
-            products.push(product);
-            
-            // Save to Firebase
-            saveProductsToFirebase().then(() => {
-                // Reset form
-                resetProductForm();
-                showNotification("Product added successfully", "success");
-                
-                // Refresh product lists
-                loadProducts();
-                loadSellingProducts();
-            });
-        }
-
-        // Edit product
-        function editProduct(productId) {
-            const product = products.find(p => p.id === productId);
-            if (!product) {
-                showNotification('Product not found!', 'error');
-                return;
-            }
-            
-            console.log('Editing product:', product);
-            
-            // Set editing mode
-            editingProductId = productId;
-            
-            // Fill form with product data
-            document.getElementById('productId').value = product.id;
-            document.getElementById('productName').value = product.name;
-            document.getElementById('productPrice').value = product.price;
-            document.getElementById('productStock').value = product.stock;
-            document.getElementById('productDescription').value = product.description || '';
-            
-            // Change form title and button for editing
-            document.getElementById('productFormTitle').textContent = 'Edit Product';
-            const submitBtn = document.getElementById('productSubmitBtn');
-            submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Product';
-            
-            // Show cancel edit button
-            document.getElementById('cancelEditBtn').style.display = 'inline-flex';
-            
-            // Switch to add-product tab
-            showTab('add-product');
-            showNotification('Editing product: ' + product.name, 'info');
-        }
-
-        // Update existing product
-        function updateProduct(productId) {
-            const productIndex = products.findIndex(p => p.id === productId);
-            if (productIndex === -1) {
-                showNotification('Product not found!', 'error');
-                return;
-            }
-            
-            const productData = {
-                id: document.getElementById('productId').value.trim(),
-                name: document.getElementById('productName').value.trim(),
-                price: parseFloat(document.getElementById('productPrice').value),
-                stock: parseInt(document.getElementById('productStock').value),
-                description: document.getElementById('productDescription').value.trim()
-            };
-            
-            // Validate
-            if (!productData.id || !productData.name || isNaN(productData.price) || isNaN(productData.stock)) {
-                showNotification("Please fill all required fields correctly", "error");
-                return;
-            }
-            
-            // Check if ID is being changed to an existing one (excluding current product)
-            if (productData.id !== productId && products.find(p => p.id === productData.id)) {
-                showNotification("Product ID already exists", "error");
-                return;
-            }
-            
-            // Keep existing image if available
-            productData.image = products[productIndex].image || 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=400';
-            
-            // Update product
-            products[productIndex] = productData;
-            
-            // Save to Firebase
-            saveProductsToFirebase().then(() => {
-                // Reset form to add mode
-                resetProductForm();
-                
-                // Refresh product lists
-                loadProducts();
-                loadSellingProducts();
-                
-                showNotification("Product updated successfully", "success");
-            });
-        }
-
-        // Reset product form to add mode
-        function resetProductForm() {
-            document.getElementById('addProductForm').reset();
-            document.getElementById('productFormTitle').textContent = 'Add New Product';
-            const submitBtn = document.getElementById('productSubmitBtn');
-            submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add Product';
-            
-            // Hide cancel edit button
-            document.getElementById('cancelEditBtn').style.display = 'none';
-            
-            // Reset editing mode
-            editingProductId = null;
-        }
-
-        // Cancel edit
-        function cancelEdit() {
-            resetProductForm();
-            showNotification('Edit cancelled', 'info');
-        }
-
-        // Load products for management
-        function loadProducts() {
-            const searchTerm = document.getElementById('productSearch')?.value.toLowerCase() || '';
-            const stockFilter = document.getElementById('stockFilter')?.value || '';
-            
-            let filteredProducts = products.filter(p => {
-                const matchesSearch = p.name.toLowerCase().includes(searchTerm) || 
-                                      p.id.toLowerCase().includes(searchTerm);
-                let matchesStock = true;
-                
-                if (stockFilter === 'low') matchesStock = p.stock < 20;
-                else if (stockFilter === 'out') matchesStock = p.stock === 0;
-                else if (stockFilter === 'in') matchesStock = p.stock > 0;
-                
-                return matchesSearch && matchesStock;
-            });
-            
-            const grid = document.getElementById('productGrid');
-            if (!grid) return;
-            
-            if (filteredProducts.length === 0) {
-                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:#718096;">No products found</div>';
-                return;
-            }
-            
-            grid.innerHTML = filteredProducts.map(p => `
-                <div class="product-card">
-                    <img src="${p.image}" alt="${p.name}" class="product-image">
-                    <div class="product-info">
-                        <div class="product-name">${p.name}</div>
-                        <div class="product-details">
-                            <div class="product-price">Rs ${p.price.toFixed(2)}</div>
-                            <div class="product-stock ${p.stock < 20 ? 'low' : ''}">Stock: ${p.stock}</div>
-                        </div>
-                        <div class="product-actions">
-                            <button class="btn btn-primary" onclick="editProduct('${p.id}')" style="flex:1;">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="btn btn-danger" onclick="deleteProduct('${p.id}')" style="flex:1;">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </div>
+            if (products.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 50px; color: white;">
+                        <i class="fas fa-box-open fa-4x"></i>
+                        <div style="margin-top: 20px; font-size: 18px;">No products available</div>
                     </div>
-                </div>
-            `).join('');
-        }
-
-        // Load products for selling
-        function loadSellingProducts() {
-            const searchTerm = document.getElementById('sellingSearch')?.value.toLowerCase() || '';
-            
-            let filteredProducts = products.filter(p => 
-                p.stock > 0 && (
-                    p.name.toLowerCase().includes(searchTerm) ||
-                    p.id.toLowerCase().includes(searchTerm)
-                )
-            );
-            
-            const grid = document.getElementById('sellingProductGrid');
-            if (!grid) return;
-            
-            if (filteredProducts.length === 0) {
-                grid.innerHTML = '<div style="text-align:center; padding:40px; color:#718096;">No products found</div>';
+                `;
                 return;
             }
             
-            grid.innerHTML = filteredProducts.map(p => `
+            grid.innerHTML = products.map(p => `
                 <div class="product-card">
-                    <img src="${p.image}" alt="${p.name}" class="product-image">
+                    <span class="product-badge">In Stock</span>
+                    <img src="${p.image || 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=400'}" 
+                         alt="${p.name}" 
+                         class="product-image"
+                         onerror="this.src='https://images.unsplash.com/photo-1589998059171-988d887df646?w=400'">
+                    
                     <div class="product-info">
-                        <div class="product-name">${p.name}</div>
-                        <div class="product-details">
-                            <div class="product-price">Rs ${p.price.toFixed(2)}</div>
-                            <div class="product-stock ${p.stock < 20 ? 'low' : ''}">Stock: ${p.stock}</div>
+                        <div class="product-code">
+                            <i class="fas fa-barcode"></i> ${p.id}
                         </div>
-                        <button class="btn btn-primary" onclick="addToCart('${p.id}')" style="width:100%;">
+                        
+                        <h3 class="product-name">${p.name}</h3>
+                        
+                        <div class="product-price">
+                            Rs ${p.price.toFixed(2)}
+                        </div>
+                        
+                        <button class="add-to-cart-btn" onclick="addToCart('${p.id}')">
                             <i class="fas fa-cart-plus"></i> Add to Cart
                         </button>
                     </div>
@@ -2162,23 +925,16 @@
             `).join('');
         }
 
-        // Add to cart
+        // Cart functions
         function addToCart(productId) {
             const product = products.find(p => p.id === productId);
-            if (!product || product.stock === 0) {
-                showNotification('Product out of stock!', 'error');
-                return;
-            }
+            if (!product) return;
             
             const existingItem = cart.find(item => item.id === productId);
+            
             if (existingItem) {
-                if (existingItem.quantity < product.stock) {
-                    existingItem.quantity++;
-                    existingItem.total = existingItem.quantity * existingItem.price;
-                } else {
-                    showNotification('Not enough stock available!', 'error');
-                    return;
-                }
+                existingItem.quantity++;
+                existingItem.total = existingItem.quantity * existingItem.price;
             } else {
                 cart.push({
                     id: product.id,
@@ -2193,19 +949,55 @@
             showNotification(`${product.name} added to cart`, 'success');
         }
 
-        // Update cart display
+        function updateCartQuantity(productId, change) {
+            const item = cart.find(item => item.id === productId);
+            if (!item) return;
+            
+            const newQuantity = item.quantity + change;
+            
+            if (newQuantity < 1) {
+                cart = cart.filter(item => item.id !== productId);
+            } else {
+                item.quantity = newQuantity;
+                item.total = newQuantity * item.price;
+            }
+            
+            updateCartDisplay();
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartDisplay();
+            showNotification('Item removed from cart', 'info');
+        }
+
+        function clearCart() {
+            if (cart.length === 0) return;
+            
+            if (confirm('Clear all items from cart?')) {
+                cart = [];
+                updateCartDisplay();
+                showNotification('Cart cleared', 'info');
+            }
+        }
+
         function updateCartDisplay() {
             const cartItems = document.getElementById('cartItems');
             const cartTotal = document.getElementById('cartTotal');
+            const cartCount = document.getElementById('cartCount');
+            const placeOrderBtn = document.getElementById('placeOrderBtn');
             
             if (cart.length === 0) {
                 cartItems.innerHTML = `
-                    <div style="text-align: center; color: #718096; padding: 40px 0;">
+                    <div style="text-align: center; color: #6c757d; padding: 40px;">
                         <i class="fas fa-shopping-cart" style="font-size: 48px; margin-bottom: 15px;"></i>
                         <div>Your cart is empty</div>
+                        <div style="margin-top: 10px; font-size: 14px;">Add products from below</div>
                     </div>
                 `;
                 cartTotal.textContent = 'Rs 0.00';
+                cartCount.textContent = '0';
+                placeOrderBtn.disabled = true;
                 return;
             }
             
@@ -2216,340 +1008,187 @@
                     <div class="cart-item">
                         <div class="cart-item-info">
                             <div class="cart-item-name">${item.name}</div>
-                            <div class="cart-item-qty">
-                                <button class="qty-btn" onclick="updateCartQuantity('${item.id}', -1)">-</button>
-                                <span>${item.quantity}</span>
-                                <button class="qty-btn" onclick="updateCartQuantity('${item.id}', 1)">+</button>
-                            </div>
+                            <div class="cart-item-price">Rs ${item.price.toFixed(2)}</div>
                         </div>
-                        <div class="cart-item-price">Rs ${item.total.toFixed(2)}</div>
+                        <div class="cart-item-qty">
+                            <button class="qty-btn" onclick="updateCartQuantity('${item.id}', -1)">-</button>
+                            <span style="min-width: 30px; text-align: center;">${item.quantity}</span>
+                            <button class="qty-btn" onclick="updateCartQuantity('${item.id}', 1)">+</button>
+                            <button class="qty-btn remove-btn" onclick="removeFromCart('${item.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
             }).join('');
             
             cartTotal.textContent = 'Rs ' + total.toFixed(2);
+            cartCount.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+            checkOrderButton();
         }
 
-        // Update cart quantity
-        function updateCartQuantity(productId, change) {
-            const item = cart.find(item => item.id === productId);
-            const product = products.find(p => p.id === productId);
+        function checkOrderButton() {
+            const placeOrderBtn = document.getElementById('placeOrderBtn');
+            const name = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('customerPhone1').value.trim();
+            const address = document.getElementById('customerAddress').value.trim();
             
-            if (!item || !product) return;
-            
-            const newQuantity = item.quantity + change;
-            
-            if (newQuantity < 1) {
-                cart = cart.filter(item => item.id !== productId);
-            } else if (newQuantity > product.stock) {
-                showNotification('Not enough stock available!', 'error');
-                return;
-            } else {
-                item.quantity = newQuantity;
-                item.total = newQuantity * item.price;
-            }
-            
-            updateCartDisplay();
+            placeOrderBtn.disabled = !(cart.length > 0 && name && phone && address);
         }
 
-        // Clear cart
-        function clearCart() {
-            if (cart.length === 0) {
-                showNotification('Cart is already empty!', 'info');
-                return;
-            }
-            
-            if (confirm('Are you sure you want to clear the cart?')) {
-                cart = [];
-                updateCartDisplay();
-                showNotification('Cart cleared!', 'success');
-            }
-        }
-
-        // Checkout
-        function checkout() {
+        // Place order and generate bill
+        function placeOrder() {
             if (cart.length === 0) {
                 showNotification('Cart is empty!', 'error');
                 return;
             }
             
             const customerName = document.getElementById('customerName').value.trim();
-            const customerMobile = document.getElementById('customerMobile').value.trim();
+            const customerPhone1 = document.getElementById('customerPhone1').value.trim();
+            const customerPhone2 = document.getElementById('customerPhone2').value.trim();
             const customerAddress = document.getElementById('customerAddress').value.trim();
             
-            if (!customerName || !customerMobile) {
-                showNotification('Please enter customer name and mobile number!', 'error');
+            if (!customerName || !customerPhone1 || !customerAddress) {
+                showNotification('Please fill all required fields!', 'error');
                 return;
             }
             
+            // Calculate totals
             const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
-            const tax = subtotal * (settings.taxRate / 100);
+            const tax = subtotal * (settings.taxRate ? settings.taxRate / 100 : 0.08);
             const total = subtotal + tax;
             
-            const billNumber = 'INV-' + Date.now().toString().slice(-8);
-            const date = new Date().toISOString().split('T')[0];
-            const time = new Date().toLocaleTimeString();
+            // Generate bill number
+            const billNumber = 'BILL' + Date.now();
             
-            // Update product stock
-            cart.forEach(cartItem => {
-                const product = products.find(p => p.id === cartItem.id);
-                if (product) {
-                    product.stock -= cartItem.quantity;
-                }
-            });
-            
-            // Create bill
-            const bill = {
-                billNumber,
-                date,
-                time,
-                items: [...cart],
-                subtotal,
-                tax,
-                total,
+            // Create bill object
+            currentBill = {
+                billNumber: billNumber,
+                date: new Date().toLocaleDateString(),
+                time: new Date().toLocaleTimeString(),
                 customer: {
                     name: customerName,
-                    mobile: customerMobile,
+                    phone1: customerPhone1,
+                    phone2: customerPhone2 || '',
                     address: customerAddress
-                }
+                },
+                items: cart.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    total: item.total
+                })),
+                subtotal: subtotal,
+                tax: tax,
+                total: total,
+                timestamp: new Date().toISOString()
             };
             
-            // Add to bills
-            bills.push(bill);
+            showLoading("Placing order...");
             
-            // Save to Firebase
-            saveProductsToFirebase().then(() => {
-                return saveBillsToFirebase();
+            // Save to Firebase bills
+            database.ref('bills/' + billNumber).set(currentBill).then(() => {
+                // Update product stock
+                const updates = {};
+                cart.forEach(item => {
+                    const product = products.find(p => p.id === item.id);
+                    if (product) {
+                        const newStock = product.stock - item.quantity;
+                        updates['products/' + item.id + '/stock'] = newStock;
+                    }
+                });
+                
+                return database.ref().update(updates);
             }).then(() => {
                 // Clear cart and form
                 cart = [];
                 document.getElementById('customerName').value = '';
-                document.getElementById('customerMobile').value = '';
+                document.getElementById('customerPhone1').value = '';
+                document.getElementById('customerPhone2').value = '';
                 document.getElementById('customerAddress').value = '';
                 
                 updateCartDisplay();
-                loadProducts();
-                loadSellingProducts();
-                loadBills();
-                updateAnalytics();
+                hideLoading();
                 
-                // Show bill in modal
-                generateBill(bill);
-                showNotification('Sale completed successfully!', 'success');
+                // Show bill
+                showBill(currentBill);
+                
+                // Send WhatsApp notification
+                sendOrderNotification(currentBill);
+                
+                showNotification('Order placed successfully!', 'success');
+            }).catch((error) => {
+                console.error("Error placing order:", error);
+                hideLoading();
+                showNotification('Error placing order', 'error');
             });
         }
 
-        // Generate bill
-        function generateBill(bill) {
-            const modalTitle = document.getElementById('billModalTitle');
-            const billContent = document.getElementById('billContent');
-            
-            modalTitle.textContent = `Invoice #${bill.billNumber}`;
-            
-            // Create bill HTML with table
+        // Show bill modal
+        function showBill(bill) {
             const billHTML = `
-                <div class="bill-info">
-                    <div class="bill-info-section">
-                        <h3>Business Information</h3>
-                        <div class="bill-info-item">
-                            <span class="bill-info-label">Business:</span>
-                            <span class="bill-info-value">${settings.businessName}</span>
-                        </div>
-                        <div class="bill-info-item">
-                            <span class="bill-info-label">Address:</span>
-                            <span class="bill-info-value">${settings.businessAddress}</span>
-                        </div>
-                        <div class="bill-info-item">
-                            <span class="bill-info-label">Phone:</span>
-                            <span class="bill-info-value">${settings.businessPhone}</span>
-                        </div>
+                <div class="bill-header">
+                    <h2>${settings.businessName || 'Stationary Pro'}</h2>
+                    <p>${settings.businessAddress || ''}</p>
+                    <p>Tel: ${settings.businessPhone || ''}</p>
+                </div>
+                
+                <div class="bill-details">
+                    <div class="bill-row">
+                        <span>Bill No:</span>
+                        <span><strong>${bill.billNumber}</strong></span>
                     </div>
-                    
-                    <div class="bill-info-section">
-                        <h3>Customer Information</h3>
-                        <div class="bill-info-item">
-                            <span class="bill-info-label">Name:</span>
-                            <span class="bill-info-value">${bill.customer.name}</span>
-                        </div>
-                        <div class="bill-info-item">
-                            <span class="bill-info-label">Mobile:</span>
-                            <span class="bill-info-value">${bill.customer.mobile}</span>
-                        </div>
-                        ${bill.customer.address ? `
-                        <div class="bill-info-item">
-                            <span class="bill-info-label">Address:</span>
-                            <span class="bill-info-value">${bill.customer.address}</span>
-                        </div>
-                        ` : ''}
-                        <div class="bill-info-item">
-                            <span class="bill-info-label">Date:</span>
-                            <span class="bill-info-value">${bill.date} ${bill.time}</span>
-                        </div>
+                    <div class="bill-row">
+                        <span>Date:</span>
+                        <span>${bill.date} ${bill.time}</span>
+                    </div>
+                    <div class="bill-row">
+                        <span>Customer:</span>
+                        <span>${bill.customer.name}</span>
+                    </div>
+                    <div class="bill-row">
+                        <span>Phone:</span>
+                        <span>${bill.customer.phone1} ${bill.customer.phone2 ? '/ ' + bill.customer.phone2 : ''}</span>
+                    </div>
+                    <div class="bill-row">
+                        <span>Address:</span>
+                        <span>${bill.customer.address}</span>
                     </div>
                 </div>
                 
-                <h3 style="color: var(--primary-blue); margin-bottom: 15px;">Items Purchased</h3>
-                <table class="bill-items-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Product ID</th>
-                            <th>Product Name</th>
-                            <th class="text-center">Price (Rs)</th>
-                            <th class="text-center">Quantity</th>
-                            <th class="text-right">Total (Rs)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${bill.items.map((item, index) => `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>${item.id}</td>
-                            <td>${item.name}</td>
-                            <td class="text-center">${item.price.toFixed(2)}</td>
-                            <td class="text-center">${item.quantity}</td>
-                            <td class="text-right">${item.total.toFixed(2)}</td>
-                        </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+                <div class="bill-items">
+                    <h3 style="margin-bottom: 10px;">Items</h3>
+                    ${bill.items.map(item => `
+                        <div class="bill-item">
+                            <span>${item.name} x ${item.quantity}</span>
+                            <span>Rs ${item.total.toFixed(2)}</span>
+                        </div>
+                    `).join('')}
+                </div>
                 
-                <div class="bill-summary">
-                    <div class="bill-summary-row">
+                <div class="bill-total">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                         <span>Subtotal:</span>
                         <span>Rs ${bill.subtotal.toFixed(2)}</span>
                     </div>
-                    <div class="bill-summary-row">
-                        <span>Tax (${settings.taxRate}%):</span>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>Tax (${settings.taxRate || 8}%):</span>
                         <span>Rs ${bill.tax.toFixed(2)}</span>
                     </div>
-                    <div class="bill-summary-row total">
-                        <span>Grand Total:</span>
+                    <div style="display: flex; justify-content: space-between; font-size: 24px; color: #28a745; margin-top: 10px;">
+                        <span>Total:</span>
                         <span>Rs ${bill.total.toFixed(2)}</span>
                     </div>
                 </div>
                 
                 <div class="bill-footer">
-                    ${settings.receiptFooter}
+                    ${settings.receiptFooter || 'Thank you for your business!'}
                 </div>
             `;
             
-            billContent.innerHTML = billHTML;
-            
-            // Show modal
+            document.getElementById('billHTML').innerHTML = billHTML;
             document.getElementById('billModal').classList.add('active');
-        }
-
-        // View bill with table format
-        function viewBill(billNumber) {
-            const bill = bills.find(b => b.billNumber === billNumber);
-            if (!bill) {
-                showNotification('Bill not found!', 'error');
-                return;
-            }
-            
-            const modalTitle = document.getElementById('billModalTitle');
-            const billContent = document.getElementById('billContent');
-            
-            modalTitle.textContent = `Invoice #${bill.billNumber}`;
-            
-            // Create bill HTML with table
-            const billHTML = `
-                <div class="bill-info">
-                    <div class="bill-info-section">
-                        <h3>Business Information</h3>
-                        <div class="bill-info-item">
-                            <span class="bill-info-label">Business:</span>
-                            <span class="bill-info-value">${settings.businessName}</span>
-                        </div>
-                        <div class="bill-info-item">
-                            <span class="bill-info-label">Address:</span>
-                            <span class="bill-info-value">${settings.businessAddress}</span>
-                        </div>
-                        <div class="bill-info-item">
-                            <span class="bill-info-label">Phone:</span>
-                            <span class="bill-info-value">${settings.businessPhone}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="bill-info-section">
-                        <h3>Customer Information</h3>
-                        <div class="bill-info-item">
-                            <span class="bill-info-label">Name:</span>
-                            <span class="bill-info-value">${bill.customer.name}</span>
-                        </div>
-                        <div class="bill-info-item">
-                            <span class="bill-info-label">Mobile:</span>
-                            <span class="bill-info-value">${bill.customer.mobile}</span>
-                        </div>
-                        ${bill.customer.address ? `
-                        <div class="bill-info-item">
-                            <span class="bill-info-label">Address:</span>
-                            <span class="bill-info-value">${bill.customer.address}</span>
-                        </div>
-                        ` : ''}
-                        <div class="bill-info-item">
-                            <span class="bill-info-label">Date:</span>
-                            <span class="bill-info-value">${bill.date} ${bill.time}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <h3 style="color: var(--primary-blue); margin-bottom: 15px;">Items Purchased</h3>
-                <table class="bill-items-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Product ID</th>
-                            <th>Product Name</th>
-                            <th class="text-center">Price (Rs)</th>
-                            <th class="text-center">Quantity</th>
-                            <th class="text-right">Total (Rs)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${bill.items.map((item, index) => `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>${item.id}</td>
-                            <td>${item.name}</td>
-                            <td class="text-center">${item.price.toFixed(2)}</td>
-                            <td class="text-center">${item.quantity}</td>
-                            <td class="text-right">${item.total.toFixed(2)}</td>
-                        </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                
-                <div class="bill-summary">
-                    <div class="bill-summary-row">
-                        <span>Subtotal:</span>
-                        <span>Rs ${bill.subtotal.toFixed(2)}</span>
-                    </div>
-                    <div class="bill-summary-row">
-                        <span>Tax (${settings.taxRate}%):</span>
-                        <span>Rs ${bill.tax.toFixed(2)}</span>
-                    </div>
-                    <div class="bill-summary-row total">
-                        <span>Grand Total:</span>
-                        <span>Rs ${bill.total.toFixed(2)}</span>
-                    </div>
-                </div>
-                
-                <div class="bill-footer">
-                    ${settings.receiptFooter}
-                </div>
-            `;
-            
-            billContent.innerHTML = billHTML;
-            
-            // Show modal
-            document.getElementById('billModal').classList.add('active');
-        }
-
-        // Print bill
-        function printBill() {
-            window.print();
         }
 
         // Close bill modal
@@ -2557,272 +1196,131 @@
             document.getElementById('billModal').classList.remove('active');
         }
 
-        // Load bills
-        function loadBills() {
-            const dateFilter = document.getElementById('billDateFilter').value;
-            const sortBy = document.getElementById('billSort').value;
+        // Share bill via WhatsApp
+        function shareBillWhatsApp() {
+            if (!currentBill) return;
             
-            let filteredBills = [...bills];
+            const bill = currentBill;
+            const phone = settings.businessPhone?.replace(/\D/g, '') || '94771234567';
             
-            if (dateFilter) {
-                filteredBills = filteredBills.filter(bill => bill.date === dateFilter);
-            }
+            let message = `🛒 *Order Bill* 🛒\n\n`;
+            message += `🏪 *${settings.businessName || 'Stationary Pro'}*\n`;
+            message += `📅 *Date:* ${bill.date} ${bill.time}\n`;
+            message += `🧾 *Bill No:* ${bill.billNumber}\n\n`;
+            message += `👤 *Customer:* ${bill.customer.name}\n`;
+            message += `📞 *Phone:* ${bill.customer.phone1}\n`;
+            if (bill.customer.phone2) message += `📞 *Alt:* ${bill.customer.phone2}\n`;
+            message += `📍 *Address:* ${bill.customer.address}\n\n`;
+            message += `📦 *Items Purchased:*\n`;
             
-            // Sort bills
-            filteredBills.sort((a, b) => {
-                if (sortBy === 'newest') return new Date(b.date) - new Date(a.date);
-                if (sortBy === 'oldest') return new Date(a.date) - new Date(b.date);
-                if (sortBy === 'highest') return b.total - a.total;
-                if (sortBy === 'lowest') return a.total - b.total;
-                return 0;
+            bill.items.forEach((item, i) => {
+                message += `${i+1}. ${item.name} x${item.quantity} = Rs ${item.total}\n`;
             });
             
-            const tbody = document.getElementById('billsBody');
-            if (filteredBills.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No bills found</td></tr>';
-                return;
-            }
+            message += `\n💰 *Subtotal:* Rs ${bill.subtotal}\n`;
+            message += `💵 *Tax:* Rs ${bill.tax}\n`;
+            message += `💎 *Total:* Rs ${bill.total}\n\n`;
+            message += `${settings.receiptFooter || 'Thank you for your business!'}`;
             
-            tbody.innerHTML = filteredBills.map(bill => `
-                <tr>
-                    <td>${bill.billNumber}</td>
-                    <td>${bill.date}<br><small>${bill.time}</small></td>
-                    <td>${bill.customer.name}</td>
-                    <td>${bill.customer.mobile}</td>
-                    <td style="font-weight: 600; color: var(--success);">Rs ${bill.total.toFixed(2)}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="action-btn view" onclick="viewBill('${bill.billNumber}')">
-                                <i class="fas fa-eye"></i> View
-                            </button>
-                            <button class="action-btn print" onclick="printBillDirectly('${bill.billNumber}')">
-                                <i class="fas fa-print"></i> Print
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
         }
 
-        // Direct print function
-        function printBillDirectly(billNumber) {
-            const bill = bills.find(b => b.billNumber === billNumber);
-            if (!bill) {
-                showNotification('Bill not found!', 'error');
-                return;
-            }
+        // Copy bill to clipboard
+        function copyBillToClipboard() {
+            if (!currentBill) return;
             
-            // Create a print window
-            const printWindow = window.open('', '_blank');
+            const bill = currentBill;
             
-            const printContent = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Bill #${bill.billNumber}</title>
-                    <style>
-                        body {
-                            font-family: 'Courier New', monospace;
-                            margin: 0;
-                            padding: 20px;
-                        }
-                        .bill-header {
-                            text-align: center;
-                            border-bottom: 2px solid #000;
-                            padding-bottom: 15px;
-                            margin-bottom: 20px;
-                        }
-                        .bill-info {
-                            margin-bottom: 20px;
-                        }
-                        table {
-                            width: 100%;
-                            border-collapse: collapse;
-                            margin-bottom: 20px;
-                        }
-                        th, td {
-                            padding: 8px;
-                            text-align: left;
-                            border-bottom: 1px dashed #ccc;
-                        }
-                        th {
-                            background-color: #f2f2f2;
-                        }
-                        .total-row {
-                            font-weight: bold;
-                            font-size: 1.1em;
-                        }
-                        .footer {
-                            text-align: center;
-                            margin-top: 30px;
-                            padding-top: 20px;
-                            border-top: 1px dashed #000;
-                            font-size: 12px;
-                        }
-                        @media print {
-                            body {
-                                padding: 0;
-                            }
-                            .no-print {
-                                display: none;
-                            }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="bill-header">
-                        <h1 style="margin: 0; font-size: 28px;">${settings.businessName}</h1>
-                        <p style="margin: 5px 0;">${settings.businessAddress}</p>
-                        <p style="margin: 5px 0;">Tel: ${settings.businessPhone}</p>
-                    </div>
-                    
-                    <div class="bill-info">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <div>
-                                <strong>INVOICE #:</strong> ${bill.billNumber}<br>
-                                <strong>DATE:</strong> ${bill.date} ${bill.time}
-                            </div>
-                            <div style="text-align: right;">
-                                <strong>CUSTOMER:</strong> ${bill.customer.name}<br>
-                                <strong>MOBILE:</strong> ${bill.customer.mobile}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Product ID</th>
-                                <th>Product Name</th>
-                                <th style="text-align: center;">Price</th>
-                                <th style="text-align: center;">Qty</th>
-                                <th style="text-align: right;">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${bill.items.map((item, index) => `
-                            <tr>
-                                <td>${index + 1}</td>
-                                <td>${item.id}</td>
-                                <td>${item.name}</td>
-                                <td style="text-align: center;">Rs ${item.price.toFixed(2)}</td>
-                                <td style="text-align: center;">${item.quantity}</td>
-                                <td style="text-align: right;">Rs ${item.total.toFixed(2)}</td>
-                            </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                    
-                    <div style="float: right; width: 250px;">
-                        <div style="display: flex; justify-content: space-between; padding: 5px 0;">
-                            <span>Subtotal:</span>
-                            <span>Rs ${bill.subtotal.toFixed(2)}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 5px 0;">
-                            <span>Tax (${settings.taxRate}%):</span>
-                            <span>Rs ${bill.tax.toFixed(2)}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 5px 0; font-weight: bold; border-top: 2px solid #000; margin-top: 5px; padding-top: 10px;">
-                            <span>GRAND TOTAL:</span>
-                            <span>Rs ${bill.total.toFixed(2)}</span>
-                        </div>
-                    </div>
-                    
-                    <div style="clear: both;"></div>
-                    
-                    <div class="footer">
-                        ${settings.receiptFooter}<br>
-                        Thank you for your business!
-                    </div>
-                    
-                    <div class="no-print" style="margin-top: 30px; text-align: center;">
-                        <button onclick="window.print()" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; cursor: pointer; font-size: 16px;">
-                            Print Bill
-                        </button>
-                        <button onclick="window.close()" style="padding: 10px 20px; background: #f44336; color: white; border: none; cursor: pointer; font-size: 16px; margin-left: 10px;">
-                            Close
-                        </button>
-                    </div>
-                    
-                    <script>
-                        window.onload = function() {
-                            // Auto-print after 500ms
-                            setTimeout(function() {
-                                window.print();
-                            }, 500);
-                        };
-                    <\/script>
-                </body>
-                </html>
-            `;
+            let text = `🛒 ORDER BILL 🛒\n\n`;
+            text += `${settings.businessName || 'Stationary Pro'}\n`;
+            text += `Date: ${bill.date} ${bill.time}\n`;
+            text += `Bill No: ${bill.billNumber}\n\n`;
+            text += `Customer: ${bill.customer.name}\n`;
+            text += `Phone: ${bill.customer.phone1}\n`;
+            if (bill.customer.phone2) text += `Alt Phone: ${bill.customer.phone2}\n`;
+            text += `Address: ${bill.customer.address}\n\n`;
+            text += `ITEMS:\n`;
             
-            printWindow.document.write(printContent);
-            printWindow.document.close();
+            bill.items.forEach((item, i) => {
+                text += `${i+1}. ${item.name} x${item.quantity} = Rs ${item.total}\n`;
+            });
+            
+            text += `\nSubtotal: Rs ${bill.subtotal}`;
+            text += `\nTax: Rs ${bill.tax}`;
+            text += `\nTOTAL: Rs ${bill.total}`;
+            text += `\n\n${settings.receiptFooter || 'Thank you for your business!'}`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('Bill copied to clipboard!', 'success');
+            }).catch(() => {
+                showNotification('Failed to copy', 'error');
+            });
         }
 
-        // Update analytics
-        function updateAnalytics() {
-            const totalRevenue = bills.reduce((sum, bill) => sum + bill.total, 0);
-            const totalOrders = bills.length;
-            const productsSold = bills.reduce((sum, bill) => 
-                sum + bill.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0);
-            const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+        // Send order notification to business WhatsApp
+        function sendOrderNotification(bill) {
+            const phone = settings.businessWhatsApp?.replace(/\D/g, '') || '94771234567';
             
-            document.getElementById('totalRevenue').textContent = 'Rs ' + totalRevenue.toFixed(2);
-            document.getElementById('totalOrders').textContent = totalOrders;
-            document.getElementById('productsSold').textContent = productsSold;
-            document.getElementById('avgOrderValue').textContent = 'Rs ' + avgOrderValue.toFixed(2);
+            let message = `🛍️ *NEW ORDER RECEIVED!* 🛍️\n\n`;
+            message += `📋 *Order ID:* ${bill.billNumber}\n`;
+            message += `👤 *Customer:* ${bill.customer.name}\n`;
+            message += `📞 *Phone 1:* ${bill.customer.phone1}\n`;
+            if (bill.customer.phone2) message += `📞 *Phone 2:* ${bill.customer.phone2}\n`;
+            message += `📍 *Address:* ${bill.customer.address}\n\n`;
+            message += `📦 *Items:*\n`;
+            
+            bill.items.forEach((item, i) => {
+                message += `${i+1}. ${item.name} x${item.quantity} = Rs ${item.total}\n`;
+            });
+            
+            message += `\n💰 *Subtotal:* Rs ${bill.subtotal}`;
+            message += `\n💵 *Tax:* Rs ${bill.tax}`;
+            message += `\n💎 *TOTAL:* Rs ${bill.total}`;
+            message += `\n\n⏰ *Time:* ${bill.date} ${bill.time}`;
+            
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
         }
 
-        // Delete product
-        function deleteProduct(productId) {
-            if (confirm('Are you sure you want to delete this product?')) {
-                products = products.filter(p => p.id !== productId);
-                saveProductsToFirebase().then(() => {
-                    loadProducts();
-                    loadSellingProducts();
-                    showNotification('Product deleted successfully!', 'success');
-                });
-            }
+        // Share functions
+        function shareCatalogWhatsApp() {
+            const text = `Check out our products!\n\n` +
+                        `🏪 ${settings.businessName || 'Stationary Pro'}\n` +
+                        `📞 ${settings.businessPhone || ''}\n` +
+                        `📍 ${settings.businessAddress || ''}\n\n` +
+                        `Browse our catalog at: ${window.location.href}`;
+            
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         }
 
-        // Clear all data
-        function clearAllData() {
-            if (confirm('WARNING: This will delete ALL data. Are you sure?')) {
-                showLoading("Clearing all data...");
-                
-                database.ref().remove()
-                    .then(() => {
-                        products = [];
-                        bills = [];
-                        cart = [];
-                        settings = {
-                            businessName: "Stationary Pro",
-                            businessAddress: "123 Main Street, City",
-                            businessPhone: "(123) 456-7890",
-                            businessEmail: "info@stationarypro.com",
-                            receiptFooter: "Thank you for your business!",
-                            taxRate: 8
-                        };
-                        
-                        loadSettingsToUI();
-                        loadProducts();
-                        loadSellingProducts();
-                        loadBills();
-                        updateAnalytics();
-                        
-                        hideLoading();
-                        showNotification('All data cleared successfully!', 'success');
-                    })
-                    .catch((error) => {
-                        hideLoading();
-                        showNotification('Error clearing data', 'error');
-                    });
-            }
+        function shareCatalogEmail() {
+            const subject = `${settings.businessName || 'Stationary Pro'} - Product Catalog`;
+            const body = `Check out our products!\n\n` +
+                        `Business: ${settings.businessName || 'Stationary Pro'}\n` +
+                        `Phone: ${settings.businessPhone || ''}\n` +
+                        `Address: ${settings.businessAddress || ''}\n\n` +
+                        `Browse our catalog at: ${window.location.href}`;
+            
+            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         }
 
-        // Show notification
+        function copyCatalogLink() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                showNotification('Link copied to clipboard!', 'success');
+            }).catch(() => {
+                showNotification('Failed to copy link', 'error');
+            });
+        }
+
+        // Utility functions
+        function showLoading(message) {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            if (message) document.getElementById('loadingText').textContent = message;
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
         function showNotification(message, type) {
             const container = document.getElementById('notificationContainer');
             const notification = document.createElement('div');
@@ -2839,68 +1337,18 @@
             }, 3000);
         }
 
-        // Export functions
-        function exportBillsToCSV() {
-            if (bills.length === 0) {
-                showNotification('No bills to export', 'error');
-                return;
-            }
-            
-            const headers = ['Bill No', 'Date', 'Customer', 'Mobile', 'Total'];
-            const csvContent = [
-                headers.join(','),
-                ...bills.map(bill => [
-                    bill.billNumber,
-                    bill.date,
-                    `"${bill.customer.name}"`,
-                    bill.customer.mobile,
-                    bill.total.toFixed(2)
-                ].join(','))
-            ].join('\n');
-            
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `bills_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            
-            showNotification('CSV exported successfully', 'success');
-        }
-
-        function exportAllBillsPDF() {
-            showNotification('PDF export feature coming soon', 'info');
-        }
-
-        function exportAnalyticsReport() {
-            showNotification('Analytics report export coming soon', 'info');
-        }
-
-        function resetAnalyticsFilter() {
-            document.getElementById('analyticsFromDate').value = '';
-            document.getElementById('analyticsToDate').value = '';
-            updateAnalytics();
-        }
-
-        // Make functions available globally
+        // Make functions global
         window.addToCart = addToCart;
         window.updateCartQuantity = updateCartQuantity;
-        window.editProduct = editProduct;
-        window.deleteProduct = deleteProduct;
-        window.saveSettings = saveSettings;
-        window.viewBill = viewBill;
-        window.updateAnalytics = updateAnalytics;
-        window.resetAnalyticsFilter = resetAnalyticsFilter;
-        window.exportAnalyticsReport = exportAnalyticsReport;
-        window.exportBillsToCSV = exportBillsToCSV;
-        window.exportAllBillsPDF = exportAllBillsPDF;
-        window.clearAllData = clearAllData;
-        window.showTab = showTab;
-        window.printBill = printBill;
+        window.removeFromCart = removeFromCart;
+        window.clearCart = clearCart;
+        window.placeOrder = placeOrder;
         window.closeBillModal = closeBillModal;
-        window.printBillDirectly = printBillDirectly;
-        window.resetProductForm = resetProductForm;
-        window.cancelEdit = cancelEdit;
+        window.shareBillWhatsApp = shareBillWhatsApp;
+        window.copyBillToClipboard = copyBillToClipboard;
+        window.shareCatalogWhatsApp = shareCatalogWhatsApp;
+        window.shareCatalogEmail = shareCatalogEmail;
+        window.copyCatalogLink = copyCatalogLink;
     </script>
 </body>
 </html>
