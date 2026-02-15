@@ -21,7 +21,7 @@
             min-height: 100vh;
         }
 
-        /* Floating Cart Icon - Only shows count and total */
+        /* Floating Cart Icon */
         .cart-float {
             position: fixed;
             top: 20px;
@@ -742,7 +742,7 @@
     </style>
 </head>
 <body>
-    <!-- Floating Cart Icon - Shows count and total only -->
+    <!-- Floating Cart Icon -->
     <div class="cart-float" onclick="toggleCartSidebar()">
         <i class="fas fa-shopping-cart"></i>
         <span class="cart-total-float" id="cartFloatTotal">Rs 0</span>
@@ -917,19 +917,28 @@
                     })).filter(p => p.stock > 0);
                 }
                 
-                // Get last invoice number
+                // Get last invoice number - FIXED VERSION
                 return database.ref('bills').once('value');
             }).then((snapshot) => {
                 const data = snapshot.val();
                 if (data) {
-                    // Extract invoice numbers and find the last one
+                    // Convert bills object to array
                     const bills = Object.keys(data).map(key => data[key]);
-                    const invoiceNumbers = bills
+                    
+                    // Find all INV- formatted bills
+                    const invNumbers = bills
                         .map(b => b.billNumber)
                         .filter(num => num && num.startsWith('INV-'))
-                        .map(num => parseInt(num.replace('INV-', '')) || 0);
+                        .map(num => {
+                            // Extract the number part
+                            const numPart = num.replace('INV-', '');
+                            return parseInt(numPart) || 0;
+                        });
                     
-                    lastInvoiceNumber = invoiceNumbers.length > 0 ? Math.max(...invoiceNumbers) : 0;
+                    // Get the maximum number
+                    lastInvoiceNumber = invNumbers.length > 0 ? Math.max(...invNumbers) : 0;
+                    
+                    console.log("Last INV number:", lastInvoiceNumber); // For debugging
                 }
                 
                 displayProducts();
@@ -949,10 +958,16 @@
             document.getElementById('address').textContent = settings.businessAddress || '123 Main Street, City';
         }
 
-        // Generate next invoice number
+        // Generate next invoice number - FIXED VERSION
         function generateNextInvoiceNumber() {
+            // Always increment from the last INV number
             const nextNumber = lastInvoiceNumber + 1;
-            return 'INV-' + nextNumber.toString().padStart(6, '0');
+            
+            // Format with 6 digits (e.g., INV-000002)
+            const formattedNumber = 'INV-' + nextNumber.toString().padStart(6, '0');
+            
+            console.log("Generated invoice:", formattedNumber); // For debugging
+            return formattedNumber;
         }
 
         // Display products
@@ -998,7 +1013,7 @@
             `).join('');
         }
 
-        // Cart Functions - No auto open sidebar
+        // Cart Functions
         function addToCart(productId) {
             const product = products.find(p => p.id === productId);
             if (!product) return;
@@ -1020,9 +1035,6 @@
             
             updateCartDisplay();
             showNotification(`${product.name} added to cart`, 'success');
-            
-            // REMOVED: Auto open sidebar
-            // Now it only updates the floating icon
         }
 
         function updateCartQuantity(productId, change) {
@@ -1058,7 +1070,7 @@
         }
 
         function updateCartDisplay() {
-            // Update floating cart - always visible
+            // Update floating cart
             const cartBadge = document.getElementById('cartBadge');
             const cartFloatTotal = document.getElementById('cartFloatTotal');
             
@@ -1120,7 +1132,7 @@
             checkoutBtn.disabled = false;
         }
 
-        // Toggle Cart Sidebar - Only opens when icon is clicked
+        // Toggle Cart Sidebar
         function toggleCartSidebar() {
             const sidebar = document.getElementById('cartSidebar');
             const overlay = document.getElementById('overlay');
@@ -1166,7 +1178,7 @@
             document.getElementById('overlay').classList.remove('active');
         }
 
-        // Confirm Order
+        // Confirm Order - FIXED VERSION
         function confirmOrder() {
             const customerName = document.getElementById('customerName').value.trim();
             const customerPhone1 = document.getElementById('customerPhone1').value.trim();
