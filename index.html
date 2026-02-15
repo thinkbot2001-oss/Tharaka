@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Stationary Shop - Order Online</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Firebase SDK -->
@@ -13,26 +13,27 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
 
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
         }
 
         /* Main Container */
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            width: 100%;
         }
 
         /* Header */
         .header {
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
-            padding: 40px 30px;
+            padding: 30px 20px;
             border-radius: 20px 20px 0 0;
             text-align: center;
             position: relative;
@@ -56,40 +57,28 @@
         }
 
         .business-name {
-            font-size: 42px;
+            font-size: clamp(28px, 8vw, 42px);
             font-weight: 800;
             margin-bottom: 15px;
             position: relative;
-        }
-
-        .whatsapp-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: #25D366;
-            color: white;
-            padding: 15px 40px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 18px;
-            margin: 20px 0;
-            transition: all 0.3s;
-            position: relative;
-            box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
-        }
-
-        .whatsapp-link:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(37, 211, 102, 0.4);
+            word-break: break-word;
         }
 
         .contact-info {
             display: flex;
-            justify-content: center;
-            gap: 30px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
             position: relative;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .contact-info {
+                flex-direction: row;
+                justify-content: center;
+                gap: 30px;
+            }
         }
 
         .contact-item {
@@ -97,40 +86,67 @@
             align-items: center;
             gap: 10px;
             background: rgba(255, 255, 255, 0.15);
-            padding: 12px 25px;
+            padding: 10px 20px;
             border-radius: 50px;
+            width: 100%;
+            max-width: 300px;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        @media (min-width: 768px) {
+            .contact-item {
+                width: auto;
+                max-width: none;
+                font-size: 16px;
+            }
         }
 
         /* Cart Section */
         .cart-section {
             background: white;
-            padding: 25px;
+            padding: 20px 15px;
             border-radius: 15px;
-            margin: 20px 0;
+            margin: 15px 0;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
         .cart-header {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 15px;
             margin-bottom: 20px;
             padding-bottom: 15px;
             border-bottom: 2px solid #e2e8f0;
         }
 
+        @media (min-width: 768px) {
+            .cart-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
         .cart-title {
-            font-size: 24px;
+            font-size: 20px;
             color: #2c3e50;
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        @media (min-width: 768px) {
+            .cart-title {
+                font-size: 24px;
+            }
         }
 
         .cart-count {
             background: #667eea;
             color: white;
-            padding: 5px 15px;
+            padding: 5px 12px;
             border-radius: 20px;
             font-size: 14px;
         }
@@ -139,13 +155,22 @@
             background: #dc3545;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 20px;
             border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             transition: all 0.3s;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .clear-cart {
+                width: auto;
+            }
         }
 
         .clear-cart:hover {
@@ -157,15 +182,24 @@
             max-height: 400px;
             overflow-y: auto;
             margin-bottom: 20px;
+            -webkit-overflow-scrolling: touch;
         }
 
         .cart-item {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 15px;
             padding: 15px;
             border-bottom: 1px solid #e2e8f0;
             animation: slideIn 0.3s;
+        }
+
+        @media (min-width: 768px) {
+            .cart-item {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
         }
 
         @keyframes slideIn {
@@ -181,31 +215,39 @@
             font-weight: 600;
             color: #2c3e50;
             margin-bottom: 5px;
+            font-size: 16px;
         }
 
         .cart-item-price {
             color: #28a745;
             font-weight: 600;
+            font-size: 18px;
         }
 
         .cart-item-qty {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .qty-btn {
-            width: 35px;
-            height: 35px;
+            width: 40px;
+            height: 40px;
             border: 1px solid #e2e8f0;
             background: white;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s;
-            font-size: 16px;
+            font-size: 18px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .qty-btn:active {
+            transform: scale(0.95);
         }
 
         .qty-btn:hover {
@@ -229,23 +271,29 @@
             justify-content: space-between;
             align-items: center;
             padding: 20px 0;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             border-top: 2px solid #e2e8f0;
+        }
+
+        @media (min-width: 768px) {
+            .cart-total {
+                font-size: 24px;
+            }
         }
 
         /* Customer Form */
         .customer-form {
             background: white;
-            padding: 30px;
+            padding: 20px;
             border-radius: 15px;
-            margin: 20px 0;
+            margin: 15px 0;
         }
 
         .form-title {
-            font-size: 22px;
+            font-size: 20px;
             color: #2c3e50;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             padding-bottom: 15px;
             border-bottom: 2px solid #e2e8f0;
             display: flex;
@@ -255,8 +303,14 @@
 
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         .form-group {
@@ -268,6 +322,7 @@
             margin-bottom: 8px;
             font-weight: 600;
             color: #4a5568;
+            font-size: 14px;
         }
 
         .form-group label i {
@@ -278,9 +333,11 @@
         .form-control {
             padding: 12px 15px;
             border: 2px solid #e2e8f0;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 16px;
             transition: all 0.3s;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .form-control:focus {
@@ -292,9 +349,28 @@
         /* Products Grid */
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-            margin: 20px 0;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        @media (min-width: 480px) {
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 768px) {
+            .products-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .products-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
         }
 
         .product-card {
@@ -304,60 +380,63 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             transition: all 0.4s;
             border: 1px solid #e9ecef;
+            position: relative;
+            width: 100%;
         }
 
         .product-card:hover {
-            transform: translateY(-10px);
+            transform: translateY(-5px);
             box-shadow: 0 20px 40px rgba(0,0,0,0.2);
             border-color: #667eea;
         }
 
         .product-badge {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 10px;
+            right: 10px;
             background: #28a745;
             color: white;
-            padding: 5px 15px;
+            padding: 4px 12px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             z-index: 1;
         }
 
         .product-image {
             width: 100%;
-            height: 200px;
+            height: 180px;
             object-fit: cover;
         }
 
         .product-info {
-            padding: 20px;
+            padding: 15px;
         }
 
         .product-code {
-            font-size: 12px;
+            font-size: 11px;
             color: #667eea;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             background: #f0f2ff;
             display: inline-block;
-            padding: 4px 12px;
+            padding: 4px 10px;
             border-radius: 15px;
         }
 
         .product-name {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: #2c3e50;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            line-height: 1.3;
         }
 
         .product-price {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 800;
             color: #28a745;
-            margin: 15px 0;
+            margin: 10px 0;
         }
 
         .add-to-cart-btn {
@@ -367,43 +446,43 @@
             color: white;
             border: none;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             transition: all 0.3s;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .add-to-cart-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        .add-to-cart-btn:active {
+            transform: scale(0.98);
         }
 
         /* Order Button */
         .order-btn {
             width: 100%;
-            padding: 18px;
+            padding: 16px;
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
             border: none;
             border-radius: 10px;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
+            gap: 10px;
+            margin: 15px 0;
             transition: all 0.3s;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .order-btn:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(40, 167, 69, 0.3);
+        .order-btn:active:not(:disabled) {
+            transform: scale(0.98);
         }
 
         .order-btn:disabled {
@@ -414,36 +493,53 @@
         /* Share Options */
         .share-section {
             background: white;
-            padding: 20px;
+            padding: 20px 15px;
             border-radius: 15px;
-            margin: 20px 0;
+            margin: 15px 0;
             text-align: center;
         }
 
         .share-title {
-            font-size: 18px;
+            font-size: 16px;
             color: #2c3e50;
             margin-bottom: 15px;
         }
 
         .share-buttons {
             display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        @media (min-width: 768px) {
+            .share-buttons {
+                flex-direction: row;
+                justify-content: center;
+                gap: 15px;
+            }
         }
 
         .share-btn {
-            padding: 12px 30px;
+            padding: 12px 20px;
             border: none;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            gap: 8px;
             transition: all 0.3s;
+            width: 100%;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @media (min-width: 768px) {
+            .share-btn {
+                width: auto;
+                padding: 12px 30px;
+            }
         }
 
         .share-wa {
@@ -451,9 +547,9 @@
             color: white;
         }
 
-        .share-wa:hover {
+        .share-wa:active {
+            transform: scale(0.98);
             background: #128C7E;
-            transform: translateY(-2px);
         }
 
         .share-email {
@@ -461,9 +557,9 @@
             color: white;
         }
 
-        .share-email:hover {
+        .share-email:active {
+            transform: scale(0.98);
             background: #D32F2F;
-            transform: translateY(-2px);
         }
 
         .share-copy {
@@ -471,9 +567,9 @@
             color: white;
         }
 
-        .share-copy:hover {
+        .share-copy:active {
+            transform: scale(0.98);
             background: #5a67d8;
-            transform: translateY(-2px);
         }
 
         /* Bill Modal */
@@ -483,12 +579,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 10000;
-            padding: 20px;
+            padding: 10px;
         }
 
         .bill-modal.active {
@@ -498,18 +594,19 @@
         .bill-content {
             background: white;
             border-radius: 15px;
-            width: 90%;
+            width: 100%;
             max-width: 600px;
             max-height: 90vh;
             overflow-y: auto;
-            padding: 30px;
+            padding: 20px;
             position: relative;
+            -webkit-overflow-scrolling: touch;
         }
 
         .bill-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
+            position: sticky;
+            top: 0;
+            float: right;
             background: #dc3545;
             color: white;
             border: none;
@@ -520,63 +617,80 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 1;
         }
 
         .bill-header {
             text-align: center;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
             border-bottom: 2px solid #e2e8f0;
         }
 
         .bill-header h2 {
             color: #2c3e50;
             margin-bottom: 5px;
+            font-size: 20px;
+        }
+
+        .bill-header p {
+            font-size: 14px;
+            color: #6c757d;
         }
 
         .bill-details {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .bill-row {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            padding: 6px 0;
+            font-size: 14px;
         }
 
         .bill-items {
-            margin: 20px 0;
+            margin: 15px 0;
         }
 
         .bill-item {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
+            padding: 8px 0;
             border-bottom: 1px dashed #e2e8f0;
+            font-size: 14px;
         }
 
         .bill-total {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             color: #28a745;
             text-align: right;
-            margin-top: 20px;
-            padding-top: 20px;
+            margin-top: 15px;
+            padding-top: 15px;
             border-top: 2px solid #e2e8f0;
         }
 
         .bill-footer {
             text-align: center;
-            margin-top: 25px;
-            padding-top: 20px;
+            margin-top: 20px;
+            padding-top: 15px;
             border-top: 1px dashed #e2e8f0;
             color: #6c757d;
+            font-size: 13px;
         }
 
         .share-bill-btns {
             display: flex;
+            flex-direction: column;
             gap: 10px;
-            margin-top: 20px;
+            margin-top: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .share-bill-btns {
+                flex-direction: row;
+            }
         }
 
         /* Loading */
@@ -586,13 +700,15 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 10001;
             flex-direction: column;
             color: white;
+            padding: 20px;
+            text-align: center;
         }
 
         .loading-spinner {
@@ -612,14 +728,25 @@
         /* Notification */
         .notification {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
+            top: 10px;
+            right: 10px;
+            left: 10px;
+            padding: 15px;
             border-radius: 8px;
             color: white;
             font-weight: 600;
             z-index: 10002;
-            animation: slideInRight 0.3s;
+            animation: slideIn 0.3s;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        @media (min-width: 768px) {
+            .notification {
+                left: auto;
+                right: 20px;
+                min-width: 300px;
+            }
         }
 
         .notification.success {
@@ -634,33 +761,17 @@
             background: #17a2b8;
         }
 
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        /* Section Headers */
+        h2 {
+            font-size: 24px;
+            color: white;
+            margin: 20px 0 15px;
+            text-align: center;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .business-name {
-                font-size: 32px;
-            }
-            
-            .whatsapp-link {
-                padding: 12px 25px;
-                font-size: 16px;
-            }
-            
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .share-buttons {
-                flex-direction: column;
-            }
-            
-            .share-btn {
-                width: 100%;
-                justify-content: center;
+        @media (min-width: 768px) {
+            h2 {
+                font-size: 28px;
             }
         }
     </style>
@@ -681,7 +792,7 @@
             <div id="billHTML"></div>
             <div class="share-bill-btns">
                 <button class="share-btn share-wa" onclick="shareBillWhatsApp()" style="flex: 1;">
-                    <i class="fab fa-whatsapp"></i> Share via WhatsApp
+                    <i class="fab fa-whatsapp"></i> Share Bill
                 </button>
                 <button class="share-btn share-copy" onclick="copyBillToClipboard()" style="flex: 1;">
                     <i class="fas fa-copy"></i> Copy Bill
@@ -695,12 +806,6 @@
         <!-- Header -->
         <div class="header">
             <h1 class="business-name" id="businessName">Stationary Pro</h1>
-            
-            <!-- WhatsApp Business Link -->
-            <a href="https://wa.me/message/PXJAOOO7SHJQD1" target="_blank" class="whatsapp-link">
-                <i class="fab fa-whatsapp fa-2x"></i>
-                <span>Chat with us on WhatsApp</span>
-            </a>
             
             <div class="contact-info">
                 <div class="contact-item">
@@ -723,7 +828,7 @@
             <div class="cart-header">
                 <div class="cart-title">
                     <i class="fas fa-shopping-cart"></i>
-                    Temporary Cart
+                    Your Cart
                     <span class="cart-count" id="cartCount">0</span>
                 </div>
                 <button class="clear-cart" onclick="clearCart()">
@@ -748,7 +853,7 @@
         <!-- Customer Form -->
         <div class="customer-form">
             <h3 class="form-title">
-                <i class="fas fa-user"></i> Customer Details
+                <i class="fas fa-user"></i> Delivery Details
             </h3>
             <div class="form-grid">
                 <div class="form-group">
@@ -756,11 +861,11 @@
                     <input type="text" id="customerName" class="form-control" placeholder="Enter your full name" required>
                 </div>
                 <div class="form-group">
-                    <label><i class="fas fa-phone"></i> Contact Number 1 *</label>
+                    <label><i class="fas fa-phone"></i> Phone Number 1 *</label>
                     <input type="tel" id="customerPhone1" class="form-control" placeholder="Enter primary number" required>
                 </div>
                 <div class="form-group">
-                    <label><i class="fas fa-phone-alt"></i> Contact Number 2</label>
+                    <label><i class="fas fa-phone-alt"></i> Phone Number 2</label>
                     <input type="tel" id="customerPhone2" class="form-control" placeholder="Enter secondary number (optional)">
                 </div>
                 <div class="form-group">
@@ -778,7 +883,7 @@
         </button>
 
         <!-- Products Grid -->
-        <h2 style="color: white; margin: 30px 0 20px; text-align: center;">Our Products</h2>
+        <h2>Our Products</h2>
         <div class="products-grid" id="productsGrid">
             <div style="grid-column: 1/-1; text-align: center; padding: 50px; color: white;">
                 <i class="fas fa-spinner fa-spin fa-3x"></i>
@@ -904,6 +1009,7 @@
                     <img src="${p.image || 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=400'}" 
                          alt="${p.name}" 
                          class="product-image"
+                         loading="lazy"
                          onerror="this.src='https://images.unsplash.com/photo-1589998059171-988d887df646?w=400'">
                     
                     <div class="product-info">
@@ -1036,7 +1142,7 @@
             placeOrderBtn.disabled = !(cart.length > 0 && name && phone && address);
         }
 
-        // Place order and generate bill
+        // Place order and generate bill (NO TAX)
         function placeOrder() {
             if (cart.length === 0) {
                 showNotification('Cart is empty!', 'error');
@@ -1053,15 +1159,13 @@
                 return;
             }
             
-            // Calculate totals
-            const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
-            const tax = subtotal * (settings.taxRate ? settings.taxRate / 100 : 0.08);
-            const total = subtotal + tax;
+            // Calculate total (NO TAX)
+            const total = cart.reduce((sum, item) => sum + item.total, 0);
             
             // Generate bill number
-            const billNumber = 'BILL' + Date.now();
+            const billNumber = 'ORD' + Date.now().toString().slice(-8);
             
-            // Create bill object
+            // Create bill object (NO TAX)
             currentBill = {
                 billNumber: billNumber,
                 date: new Date().toLocaleDateString(),
@@ -1079,8 +1183,6 @@
                     quantity: item.quantity,
                     total: item.total
                 })),
-                subtotal: subtotal,
-                tax: tax,
                 total: total,
                 timestamp: new Date().toISOString()
             };
@@ -1094,7 +1196,7 @@
                 cart.forEach(item => {
                     const product = products.find(p => p.id === item.id);
                     if (product) {
-                        const newStock = product.stock - item.quantity;
+                        const newStock = Math.max(0, product.stock - item.quantity);
                         updates['products/' + item.id + '/stock'] = newStock;
                     }
                 });
@@ -1114,9 +1216,6 @@
                 // Show bill
                 showBill(currentBill);
                 
-                // Send WhatsApp notification
-                sendOrderNotification(currentBill);
-                
                 showNotification('Order placed successfully!', 'success');
             }).catch((error) => {
                 console.error("Error placing order:", error);
@@ -1125,7 +1224,7 @@
             });
         }
 
-        // Show bill modal
+        // Show bill modal (NO TAX)
         function showBill(bill) {
             const billHTML = `
                 <div class="bill-header">
@@ -1136,7 +1235,7 @@
                 
                 <div class="bill-details">
                     <div class="bill-row">
-                        <span>Bill No:</span>
+                        <span>Order No:</span>
                         <span><strong>${bill.billNumber}</strong></span>
                     </div>
                     <div class="bill-row">
@@ -1158,7 +1257,7 @@
                 </div>
                 
                 <div class="bill-items">
-                    <h3 style="margin-bottom: 10px;">Items</h3>
+                    <h3 style="margin-bottom: 10px; font-size: 16px;">Items</h3>
                     ${bill.items.map(item => `
                         <div class="bill-item">
                             <span>${item.name} x ${item.quantity}</span>
@@ -1168,22 +1267,12 @@
                 </div>
                 
                 <div class="bill-total">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span>Subtotal:</span>
-                        <span>Rs ${bill.subtotal.toFixed(2)}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span>Tax (${settings.taxRate || 8}%):</span>
-                        <span>Rs ${bill.tax.toFixed(2)}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 24px; color: #28a745; margin-top: 10px;">
-                        <span>Total:</span>
-                        <span>Rs ${bill.total.toFixed(2)}</span>
-                    </div>
+                    <span>Total Amount:</span>
+                    <span>Rs ${bill.total.toFixed(2)}</span>
                 </div>
                 
                 <div class="bill-footer">
-                    ${settings.receiptFooter || 'Thank you for your business!'}
+                    ${settings.receiptFooter || 'Thank you for your order!'}
                 </div>
             `;
             
@@ -1201,28 +1290,25 @@
             if (!currentBill) return;
             
             const bill = currentBill;
-            const phone = settings.businessPhone?.replace(/\D/g, '') || '94771234567';
             
             let message = `🛒 *Order Bill* 🛒\n\n`;
             message += `🏪 *${settings.businessName || 'Stationary Pro'}*\n`;
             message += `📅 *Date:* ${bill.date} ${bill.time}\n`;
-            message += `🧾 *Bill No:* ${bill.billNumber}\n\n`;
+            message += `🧾 *Order No:* ${bill.billNumber}\n\n`;
             message += `👤 *Customer:* ${bill.customer.name}\n`;
             message += `📞 *Phone:* ${bill.customer.phone1}\n`;
             if (bill.customer.phone2) message += `📞 *Alt:* ${bill.customer.phone2}\n`;
             message += `📍 *Address:* ${bill.customer.address}\n\n`;
-            message += `📦 *Items Purchased:*\n`;
+            message += `📦 *Items:*\n`;
             
             bill.items.forEach((item, i) => {
                 message += `${i+1}. ${item.name} x${item.quantity} = Rs ${item.total}\n`;
             });
             
-            message += `\n💰 *Subtotal:* Rs ${bill.subtotal}\n`;
-            message += `💵 *Tax:* Rs ${bill.tax}\n`;
-            message += `💎 *Total:* Rs ${bill.total}\n\n`;
-            message += `${settings.receiptFooter || 'Thank you for your business!'}`;
+            message += `\n💰 *Total:* Rs ${bill.total}\n\n`;
+            message += `${settings.receiptFooter || 'Thank you for your order!'}`;
             
-            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
         }
 
         // Copy bill to clipboard
@@ -1234,7 +1320,7 @@
             let text = `🛒 ORDER BILL 🛒\n\n`;
             text += `${settings.businessName || 'Stationary Pro'}\n`;
             text += `Date: ${bill.date} ${bill.time}\n`;
-            text += `Bill No: ${bill.billNumber}\n\n`;
+            text += `Order No: ${bill.billNumber}\n\n`;
             text += `Customer: ${bill.customer.name}\n`;
             text += `Phone: ${bill.customer.phone1}\n`;
             if (bill.customer.phone2) text += `Alt Phone: ${bill.customer.phone2}\n`;
@@ -1245,40 +1331,14 @@
                 text += `${i+1}. ${item.name} x${item.quantity} = Rs ${item.total}\n`;
             });
             
-            text += `\nSubtotal: Rs ${bill.subtotal}`;
-            text += `\nTax: Rs ${bill.tax}`;
             text += `\nTOTAL: Rs ${bill.total}`;
-            text += `\n\n${settings.receiptFooter || 'Thank you for your business!'}`;
+            text += `\n\n${settings.receiptFooter || 'Thank you for your order!'}`;
             
             navigator.clipboard.writeText(text).then(() => {
                 showNotification('Bill copied to clipboard!', 'success');
             }).catch(() => {
                 showNotification('Failed to copy', 'error');
             });
-        }
-
-        // Send order notification to business WhatsApp
-        function sendOrderNotification(bill) {
-            const phone = settings.businessWhatsApp?.replace(/\D/g, '') || '94771234567';
-            
-            let message = `🛍️ *NEW ORDER RECEIVED!* 🛍️\n\n`;
-            message += `📋 *Order ID:* ${bill.billNumber}\n`;
-            message += `👤 *Customer:* ${bill.customer.name}\n`;
-            message += `📞 *Phone 1:* ${bill.customer.phone1}\n`;
-            if (bill.customer.phone2) message += `📞 *Phone 2:* ${bill.customer.phone2}\n`;
-            message += `📍 *Address:* ${bill.customer.address}\n\n`;
-            message += `📦 *Items:*\n`;
-            
-            bill.items.forEach((item, i) => {
-                message += `${i+1}. ${item.name} x${item.quantity} = Rs ${item.total}\n`;
-            });
-            
-            message += `\n💰 *Subtotal:* Rs ${bill.subtotal}`;
-            message += `\n💵 *Tax:* Rs ${bill.tax}`;
-            message += `\n💎 *TOTAL:* Rs ${bill.total}`;
-            message += `\n\n⏰ *Time:* ${bill.date} ${bill.time}`;
-            
-            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
         }
 
         // Share functions
