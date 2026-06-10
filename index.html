@@ -1,1807 +1,607 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="si" id="htmlRoot">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stationary POS</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<style>
-:root {
-  --bg: #0d0d0f;
-  --bg2: #141416;
-  --bg3: #1c1c1f;
-  --bg4: #232327;
-  --border: rgba(255,255,255,0.07);
-  --border2: rgba(255,255,255,0.13);
-  --text: #f0eee8;
-  --text2: #a09d96;
-  --text3: #5a5855;
-  --gold: #d4a843;
-  --gold2: #f0c060;
-  --gold-dim: rgba(212,168,67,0.12);
-  --teal: #3db89a;
-  --teal-dim: rgba(61,184,154,0.12);
-  --red: #e05252;
-  --red-dim: rgba(224,82,82,0.12);
-  --amber: #e8904a;
-  --blue: #4a90d9;
-  --sidebar: 68px;
-  --radius: 12px;
-  --shadow: 0 4px 24px rgba(0,0,0,0.4);
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1e0303">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>වෙසක් සුබපැතුම් පත් තරඟය - 2026</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
 
-*{margin:0;padding:0;box-sizing:border-box;}
-html{height:100%;}
-body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;}
+        :root {
+            --primary-color: #5c0606;
+            --secondary-color: #ff9900;
+            --accent-color: #ffcc00;
+            --card-bg: rgba(255, 255, 255, 0.98);
+            --text-color: #1f2937;
+        }
 
-/* ═══ SIDEBAR ═══ */
-.sidebar{
-  position:fixed;left:0;top:0;bottom:0;width:var(--sidebar);
-  background:var(--bg2);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;align-items:center;z-index:200;
-  padding:20px 0;gap:4px;
-}
-.logo{
-  width:42px;height:42px;background:var(--gold);border-radius:10px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;font-weight:800;color:#000;margin-bottom:16px;
-  cursor:pointer;flex-shrink:0;letter-spacing:-1px;
-}
-.nav-btn{
-  width:46px;height:46px;border-radius:10px;border:none;
-  background:transparent;color:var(--text3);cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:3px;transition:all .2s;position:relative;
-}
-.nav-btn:hover{background:var(--bg3);color:var(--text2);}
-.nav-btn.active{background:var(--gold-dim);color:var(--gold);}
-.nav-btn i{font-size:16px;}
-.nav-btn .nav-label{font-size:8px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;font-family:'Inter',sans-serif;}
-.nav-tip{
-  position:absolute;left:calc(100% + 14px);top:50%;transform:translateY(-50%);
-  background:var(--bg4);border:1px solid var(--border2);color:var(--text);
-  padding:5px 10px;border-radius:6px;font-size:12px;white-space:nowrap;
-  pointer-events:none;opacity:0;transition:opacity .15s;z-index:999;
-}
-.nav-btn:hover .nav-tip{opacity:1;}
-.nav-divider{width:30px;height:1px;background:var(--border);margin:8px 0;}
-.sidebar-bottom{margin-top:auto;}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e0303 0%, #3a0505 50%, #110101 100%);
+            margin: 0;
+            padding: 0;
+            padding-bottom: env(safe-area-inset-bottom);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            -webkit-font-smoothing: antialiased;
+        }
 
-/* ═══ MAIN ═══ */
-.main{margin-left:var(--sidebar);min-height:100vh;}
+        /* Stars Background */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px);
+            background-size: 550px 550px, 350px 350px;
+            background-position: 0 0, 40px 60px;
+            opacity: 0.4; z-index: 0; pointer-events: none;
+        }
 
-/* ═══ TOPBAR ═══ */
-.topbar{
-  height:58px;background:var(--bg2);border-bottom:1px solid var(--border);
-  display:flex;align-items:center;padding:0 28px;gap:16px;
-  position:sticky;top:0;z-index:100;
-}
-.page-title{font-size:16px;font-weight:700;letter-spacing:-.01em;font-family:'Inter',sans-serif;}
-.topbar-mid{flex:1;}
-.topbar-right{display:flex;align-items:center;gap:12px;}
-.conn-badge{
-  display:flex;align-items:center;gap:6px;padding:5px 12px;
-  border-radius:20px;font-size:12px;font-weight:600;font-family:'JetBrains Mono',monospace;
-  background:var(--red-dim);color:var(--red);border:1px solid rgba(224,82,82,.2);
-  transition:all .3s;
-}
-.conn-badge.online{background:var(--teal-dim);color:var(--teal);border-color:rgba(61,184,154,.2);}
-.conn-dot{width:7px;height:7px;border-radius:50%;background:currentColor;}
-.conn-dot.pulse{animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.invoice-chip{
-  display:flex;align-items:center;gap:7px;padding:5px 14px;
-  background:var(--gold-dim);border:1px solid rgba(212,168,67,.25);
-  color:var(--gold);border-radius:20px;font-size:12px;font-family:'JetBrains Mono',monospace;
-  cursor:pointer;transition:all .2s;
-}
-.invoice-chip:hover{background:rgba(212,168,67,.2);}
+        /* Lanterns Animation */
+        .lantern-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 1; pointer-events: none; }
+        .lantern { position: absolute; width: 40px; height: 40px; background: radial-gradient(circle, #fff5cc 20%, #ffaa00 60%, #ff3300 100%); border-radius: 50% 50% 0 0; box-shadow: 0 0 20px #ff9900, 0 0 40px #ff3300; opacity: 0.7; animation: floatUp 15s infinite linear; }
+        .l1 { left: 10%; animation-duration: 18s; width: 30px; height: 30px; }
+        .l2 { left: 25%; animation-duration: 22s; width: 50px; height: 50px; animation-delay: 2s; }
+        .l3 { left: 75%; animation-duration: 16s; width: 35px; height: 35px; animation-delay: 5s; }
+        .l4 { left: 85%; animation-duration: 25s; width: 55px; height: 55px; animation-delay: 1s; }
+        @keyframes floatUp { 0% { transform: translateY(100vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.8; } 100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; } }
 
-/* ═══ CONTENT ═══ */
-.content{padding:28px;}
-.tab{display:none;animation:fadein .25s ease;}
-.tab.active{display:block;}
-@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        header {
+            background: rgba(43, 3, 3, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            text-align: center;
+            padding: 20px 15px;
+            padding-top: calc(20px + env(safe-area-inset-top));
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.6);
+            border-bottom: 4px solid var(--secondary-color);
+            position: relative;
+            z-index: 10;
+        }
 
-/* ═══ PAGE HEADERS ═══ */
-.page-head{margin-bottom:24px;}
-.page-head h2{font-size:28px;font-weight:700;letter-spacing:-.03em;font-family:'Playfair Display',serif;}
-.page-head p{color:var(--text2);font-size:13px;margin-top:4px;font-family:'Inter',sans-serif;font-weight:400;}
+        .secret-trigger { cursor: pointer; user-select: none; -webkit-user-select: none; display: inline-block; transition: transform 0.3s; }
+        .secret-trigger:active { transform: scale(0.9) rotate(30deg); }
 
-/* ═══ CARDS / PANELS ═══ */
-.panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);}
-.panel-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.panel-head h3{font-size:13px;font-weight:700;letter-spacing:.01em;font-family:'Inter',sans-serif;}
-.panel-body{padding:22px;}
+        header h1 {
+            color: var(--accent-color);
+            margin: 0 0 10px 0;
+            font-size: clamp(1.4rem, 5vw, 2.6rem);
+            text-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
+            font-weight: 800;
+            line-height: 1.3;
+        }
+        header p {
+            color: #ffdfa9;
+            margin: 0;
+            font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+            line-height: 1.5;
+        }
 
-/* ═══ STAT CARDS ═══ */
-.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px;}
-.stat{
-  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
-  padding:18px 20px;transition:border-color .2s;
-}
-.stat:hover{border-color:var(--border2);}
-.stat-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
-.stat-val{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1;}
-.stat-val.gold{color:var(--gold);}
-.stat-val.teal{color:var(--teal);}
-.stat-val.red{color:var(--red);}
-.stat-val.amber{color:var(--amber);}
-.stat-icon{font-size:13px;color:var(--text3);margin-bottom:10px;}
+        /* Grid Layout */
+        .grid-container {
+            max-width: 1200px;
+            margin: 25px auto;
+            padding: 0 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+            gap: 20px;
+            position: relative;
+            z-index: 10;
+        }
 
-/* ═══ FORMS ═══ */
-.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
-.fg{display:flex;flex-direction:column;gap:6px;}
-.fg label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);}
-.input,.textarea,.select{
-  background:var(--bg3);border:1px solid var(--border2);border-radius:8px;
-  color:var(--text);padding:10px 14px;font-size:14px;font-family:'Inter',sans-serif;
-  transition:border-color .2s,box-shadow .2s;outline:none;width:100%;
-}
-.input:focus,.textarea:focus,.select:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim);}
-.textarea{resize:vertical;min-height:80px;}
-.select{cursor:pointer;}
+        /* Card Setup */
+        .wesak-card {
+            background: var(--card-bg); border-radius: 20px; overflow: hidden; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 153, 0, 0.2); display: flex; flex-direction: column; transition: all 0.4s ease;
+        }
+        .wesak-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(255, 153, 0, 0.3); border-color: var(--secondary-color); }
 
-/* ═══ BUTTONS ═══ */
-.btn{
-  padding:9px 18px;border-radius:8px;border:none;font-family:'Inter',sans-serif;
-  font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;
-  gap:7px;transition:all .2s;letter-spacing:.01em;white-space:nowrap;
-}
-.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;}
-.btn-gold{background:var(--gold);color:#000;}
-.btn-gold:hover:not(:disabled){background:var(--gold2);transform:translateY(-1px);}
-.btn-teal{background:var(--teal);color:#000;}
-.btn-teal:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-1px);}
-.btn-red{background:var(--red);color:#fff;}
-.btn-red:hover:not(:disabled){filter:brightness(1.1);}
-.btn-ghost{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);}
-.btn-ghost:hover:not(:disabled){background:var(--bg4);color:var(--text);}
-.btn-amber{background:var(--amber);color:#000;}
-.btn-amber:hover:not(:disabled){filter:brightness(1.1);}
-.btn-blue{background:var(--blue);color:#fff;}
-.btn-blue:hover:not(:disabled){filter:brightness(1.1);}
+        /* Multi Image Slider */
+        .card-image-slider {
+            width: 100%; height: 260px; background-color: #120202; position: relative;
+            border-bottom: 3px solid var(--secondary-color); display: flex; align-items: center; justify-content: center;
+        }
+        
+        .slider-img {
+            width: 100%; height: 100%; object-fit: cover; cursor: pointer; display: none;
+            transition: opacity 0.3s ease;
+        }
+        .slider-img.active { display: block; }
 
-/* ═══ IMAGE UPLOAD ═══ */
-.img-upload{
-  border:1.5px dashed var(--border2);border-radius:10px;
-  background:var(--bg3);cursor:pointer;overflow:hidden;
-  aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;
-  transition:border-color .2s;
-}
-.img-upload:hover{border-color:var(--gold);}
-.img-upload img{width:100%;height:100%;object-fit:cover;}
-.img-placeholder{text-align:center;color:var(--text3);}
-.img-placeholder i{font-size:32px;margin-bottom:8px;display:block;}
-.img-placeholder span{font-size:12px;}
+        /* Slider Controls */
+        .slide-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.2rem;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .slide-btn:hover, .slide-btn:active { background: var(--secondary-color); }
+        .prev-btn { left: 8px; }
+        .next-btn { right: 8px; }
+        .img-indicator { position: absolute; bottom: 10px; background: rgba(0,0,0,0.6); color: white; padding: 2px 10px; border-radius: 10px; font-size: 0.8rem; }
 
-/* ═══ PRODUCTS GRID ═══ */
-.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
-.prod-card{
-  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
-  overflow:hidden;transition:all .2s;cursor:default;
-}
-.prod-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:var(--shadow);}
-.prod-img{width:100%;aspect-ratio:1/1;object-fit:contain;background:var(--bg3);}
-.prod-img-ph{
-  width:100%;aspect-ratio:1/1;background:var(--bg3);
-  display:flex;align-items:center;justify-content:center;
-  font-size:36px;color:var(--text3);
-}
-.prod-body{padding:14px;}
-.prod-name{font-size:14px;font-weight:700;margin-bottom:4px;letter-spacing:.01em;}
-.prod-id{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);margin-bottom:10px;}
-.prod-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border);}
-.prod-price{font-size:18px;font-weight:800;color:var(--gold);}
-.badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;}
-.badge-ok{background:var(--teal-dim);color:var(--teal);}
-.badge-low{background:rgba(232,144,74,.12);color:var(--amber);}
-.badge-out{background:var(--red-dim);color:var(--red);}
-.prod-actions{display:flex;gap:8px;margin-top:12px;}
+        .card-details { padding: 20px; text-align: center; flex-grow: 1; color: var(--text-color); }
+        .card-details h3 { margin: 0 0 8px 0; font-size: 1.3rem; color: var(--primary-color); font-weight: 700; }
+        .card-details p { margin: 0 0 15px 0; color: #4b5563; font-weight: 600; font-size: 0.95rem; }
 
-/* ═══ SEARCH BAR ═══ */
-.search-bar{
-  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
-  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
-  padding:14px 18px;margin-bottom:18px;
-}
-.search-input{
-  flex:1;min-width:180px;background:var(--bg3);border:1px solid var(--border2);
-  border-radius:8px;padding:8px 14px;color:var(--text);font-family:'Syne',sans-serif;
-  font-size:13px;outline:none;transition:border-color .2s;
-}
-.search-input:focus{border-color:var(--gold);}
+        .live-votes { display: inline-block; background: #fff1f2; color: #991b1b; padding: 6px 16px; border-radius: 30px; font-weight: 800; border: 1px solid #fecdd3; font-size: 0.9rem; }
 
-/* ═══ SELLING LAYOUT ═══ */
-.sell-grid{display:grid;grid-template-columns:1fr 360px;gap:18px;}
-@media(max-width:1100px){.sell-grid{grid-template-columns:1fr;}}
+        .vote-action-btn {
+            width: 100%;
+            background: #f3f4f6;
+            color: #1f2937;
+            border: none;
+            padding: 18px 16px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            border-top: 1px solid #e5e7eb;
+            transition: background 0.3s, color 0.3s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            min-height: 56px;
+        }
+        .vote-action-btn:hover:not(:disabled),
+        .vote-action-btn:active:not(:disabled) { background: linear-gradient(135deg, #ff9900 0%, #ff5500 100%); color: white; }
+        .vote-action-btn.voted-state { background: #059669 !important; color: white !important; }
+        .vote-action-btn:disabled:not(.voted-state) { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; }
 
-/* ═══ CART ═══ */
-.cart-items{max-height:340px;overflow-y:auto;margin-bottom:14px;}
-.cart-item{
-  display:flex;align-items:center;gap:12px;padding:12px 0;
-  border-bottom:1px solid var(--border);
-}
-.cart-name{font-size:13px;font-weight:600;flex:1;}
-.cart-sub{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
-.qty-ctrl{display:flex;align-items:center;gap:8px;}
-.qty-btn{
-  width:26px;height:26px;border-radius:6px;border:1px solid var(--border2);
-  background:var(--bg3);color:var(--text2);cursor:pointer;font-size:14px;
-  display:flex;align-items:center;justify-content:center;transition:all .15s;
-}
-.qty-btn:hover{background:var(--bg4);color:var(--text);}
-.qty-num{font-size:13px;font-weight:700;min-width:24px;text-align:center;font-family:'JetBrains Mono',monospace;}
-.cart-price{font-size:14px;font-weight:700;color:var(--gold);font-family:'DM Mono',monospace;}
-.cart-total-row{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:14px 0;border-top:1px solid var(--border2);
-  font-size:22px;font-weight:800;
-}
-.cart-total-row span:last-child{color:var(--gold);}
+        /* Lightbox (Image Viewer Modal) */
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .lightbox-content {
+            max-width: 95%;
+            max-height: 80vh;
+            object-fit: contain;
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(255, 153, 0, 0.5);
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 15px; right: 15px;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 2100;
+            width: 44px; height: 44px;
+            display: flex; align-items: center; justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .lightbox-nav {
+            position: absolute;
+            color: white;
+            font-size: 2rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            cursor: pointer;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 12px 10px;
+            border-radius: 6px;
+            min-width: 44px; min-height: 44px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .lightbox-prev { left: 5px; }
+        .lightbox-next { right: 5px; }
 
-/* ═══ BILLS TABLE ═══ */
-.table-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;}
-thead tr{background:var(--bg3);}
-th{padding:12px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);}
-td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border);}
-tr:hover td{background:rgba(255,255,255,.015);}
-.td-mono{font-family:'JetBrains Mono',monospace;}
-.td-gold{color:var(--gold);font-weight:700;font-family:'JetBrains Mono',monospace;}
+        /* Admin CSS */
+        .admin-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        .admin-content {
+            background: #ffffff;
+            color: #1f2937;
+            padding: 20px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 650px;
+            margin: auto;
+            border: 3px solid var(--secondary-color);
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 700; color: var(--primary-color); font-size: 0.95rem; }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px; /* Prevents iOS auto-zoom on focus */
+        }
+        
+        .btn { background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%); color: white; border: none; padding: 14px; font-size: 1rem; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
+        
+        .table-responsive { width: 100%; overflow-x: auto; margin-top: 20px; }
+        .admin-table { width: 100%; border-collapse: collapse; min-width: 450px; }
+        .admin-table th, .admin-table td { padding: 10px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9rem; }
+        .admin-table th { background: #f1f5f9; }
+        .delete-btn { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .close-admin { background: #6b7280; margin-top: 20px; }
+        .upload-status { font-size: 0.9rem; color: #b45309; margin-top: 6px; font-weight: bold; }
+        
+        footer { text-align: center; padding: 30px 15px; position: relative; z-index: 10; color: #ffdfa9; font-weight: 500; font-size: 0.85rem; line-height: 1.5; }
+        footer span { color: var(--accent-color); font-weight: bold; }
 
-/* ═══ STATUS BADGES ═══ */
-.status{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
-.s-new{background:rgba(74,144,217,.15);color:var(--blue);}
-.s-pending{background:rgba(232,144,74,.15);color:var(--amber);}
-.s-completed{background:var(--teal-dim);color:var(--teal);}
-
-/* ═══ ACTION BUTTONS ═══ */
-.act-btn{
-  width:30px;height:30px;border-radius:6px;border:none;cursor:pointer;
-  display:inline-flex;align-items:center;justify-content:center;font-size:12px;
-  transition:all .15s;
-}
-.act-view{background:rgba(74,144,217,.15);color:var(--blue);}
-.act-print{background:var(--teal-dim);color:var(--teal);}
-.act-edit{background:rgba(232,144,74,.15);color:var(--amber);}
-.act-del{background:var(--red-dim);color:var(--red);}
-.act-status{background:rgba(159,122,234,.15);color:#9f7aea;}
-.act-hash{background:var(--gold-dim);color:var(--gold);}
-.act-btn:hover{filter:brightness(1.3);}
-
-/* ═══ ANALYTICS ═══ */
-.best-item{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:12px 0;border-bottom:1px solid var(--border);
-}
-.best-item:last-child{border-bottom:none;}
-.best-rank{
-  width:28px;height:28px;border-radius:8px;background:var(--bg3);
-  font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;
-  color:var(--text3);margin-right:12px;flex-shrink:0;
-}
-.best-rank.top{background:var(--gold-dim);color:var(--gold);}
-.best-name{font-size:13px;font-weight:600;}
-.best-id{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;}
-.best-qty{font-size:18px;font-weight:800;color:var(--teal);}
-.best-rev{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;}
-
-/* ═══ LOW STOCK ALERT ═══ */
-.low-item{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:10px 0;border-bottom:1px solid var(--border);
-}
-.low-name{font-size:13px;font-weight:600;}
-.low-meta{font-size:11px;color:var(--text3);margin-top:2px;font-family:'JetBrains Mono',monospace;}
-.low-qty{font-size:22px;font-weight:800;color:var(--amber);}
-
-/* ═══ BILL MODAL ═══ */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.75);
-  display:none;align-items:center;justify-content:center;
-  z-index:500;padding:20px;backdrop-filter:blur(4px);
-}
-.modal-overlay.open{display:flex;}
-.modal{
-  background:var(--bg2);border:1px solid var(--border2);border-radius:16px;
-  width:100%;max-width:760px;max-height:90vh;overflow-y:auto;
-  box-shadow:0 20px 60px rgba(0,0,0,.6);
-}
-.modal-head{
-  background:var(--bg3);padding:20px 26px;
-  display:flex;justify-content:space-between;align-items:center;
-  border-bottom:1px solid var(--border);border-radius:16px 16px 0 0;
-}
-.modal-head h3{font-size:17px;font-weight:800;}
-.modal-close{
-  width:32px;height:32px;border-radius:8px;border:none;background:var(--bg4);
-  color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;
-}
-.modal-close:hover{background:var(--red-dim);color:var(--red);}
-.modal-body{padding:26px;}
-.bill-2col{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;}
-.bill-section h4{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
-.bill-row{display:flex;gap:8px;margin-bottom:6px;font-size:13px;}
-.bill-lbl{color:var(--text2);min-width:100px;}
-.bill-val{font-weight:600;}
-.bill-table{width:100%;border-collapse:collapse;margin-bottom:18px;}
-.bill-table th{
-  padding:10px 14px;background:var(--bg3);text-align:left;
-  font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);
-}
-.bill-table td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;}
-.bill-total-box{
-  background:var(--bg3);border-radius:10px;padding:16px 20px;
-  display:flex;justify-content:space-between;font-size:20px;font-weight:800;
-  border:1px solid var(--border2);
-}
-.bill-total-box span:last-child{color:var(--gold);}
-.bill-footer-txt{text-align:center;margin-top:18px;font-size:12px;color:var(--text3);font-style:italic;}
-.modal-foot{padding:16px 26px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
-
-/* ═══ LOADING OVERLAY ═══ */
-.loading-veil{
-  position:fixed;inset:0;background:rgba(0,0,0,.85);
-  display:none;align-items:center;justify-content:center;
-  z-index:999;flex-direction:column;gap:16px;
-}
-.loading-veil.show{display:flex;}
-.spinner{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-txt{font-size:14px;color:var(--text2);}
-
-/* ═══ NOTIFICATIONS ═══ */
-#notif-wrap{position:fixed;top:70px;right:20px;z-index:800;display:flex;flex-direction:column;gap:8px;}
-.notif{
-  display:flex;align-items:center;gap:10px;padding:12px 18px;
-  border-radius:10px;font-size:13px;font-weight:600;min-width:280px;max-width:380px;
-  animation:slideR .3s ease;backdrop-filter:blur(10px);
-  border:1px solid rgba(255,255,255,.08);
-}
-@keyframes slideR{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
-.notif.success{background:rgba(61,184,154,.15);color:var(--teal);}
-.notif.error{background:rgba(224,82,82,.15);color:var(--red);}
-.notif.info{background:rgba(74,144,217,.15);color:var(--blue);}
-.notif.warning{background:rgba(232,144,74,.15);color:var(--amber);}
-
-/* ═══ SETTINGS ═══ */
-.settings-block{margin-bottom:32px;padding-bottom:32px;border-bottom:1px solid var(--border);}
-.settings-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
-.settings-block h3{font-size:15px;font-weight:800;margin-bottom:18px;color:var(--text);}
-
-/* ═══ DATE FILTER ROW ═══ */
-.filter-row{
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
-  padding:14px 18px;margin-bottom:18px;
-}
-.filter-row label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);}
-.date-in{
-  background:var(--bg3);border:1px solid var(--border2);border-radius:7px;
-  color:var(--text);padding:7px 12px;font-family:'Syne',sans-serif;font-size:13px;outline:none;
-}
-.date-in:focus{border-color:var(--gold);}
-
-/* ═══ CATALOG TAB ═══ */
-.catalog-hero{
-  background:linear-gradient(135deg,var(--bg2) 0%,var(--bg3) 100%);
-  border:1px solid var(--border);border-radius:16px;padding:36px;
-  margin-bottom:22px;position:relative;overflow:hidden;
-}
-.catalog-hero::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at 80% 50%, rgba(212,168,67,.06) 0%, transparent 60%);
-  pointer-events:none;
-}
-.catalog-hero h2{
-  font-family:'Playfair Display',serif;font-size:36px;font-style:italic;
-  margin-bottom:8px;position:relative;
-}
-.catalog-hero p{color:var(--text2);font-size:14px;position:relative;}
-.catalog-view-toggle{display:flex;background:var(--bg3);border-radius:8px;overflow:hidden;border:1px solid var(--border2);}
-.cv-btn{padding:7px 14px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-size:14px;transition:all .2s;}
-.cv-btn.active{background:var(--gold);color:#000;}
-
-/* ═══ CATALOG CARD (light style for catalog tab) ═══ */
-.cat-card{
-  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
-  overflow:hidden;transition:all .2s;
-}
-.cat-card:hover{border-color:rgba(212,168,67,.3);box-shadow:0 0 0 1px rgba(212,168,67,.1),var(--shadow);}
-.cat-img{width:100%;aspect-ratio:1/1;object-fit:contain;background:var(--bg3);}
-.cat-img-ph{
-  width:100%;aspect-ratio:1/1;background:var(--bg3);
-  display:flex;align-items:center;justify-content:center;
-  font-size:40px;color:var(--text3);
-}
-.cat-body{padding:16px;}
-.cat-id{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text3);margin-bottom:3px;letter-spacing:.05em;}
-.cat-name{font-size:15px;font-weight:700;margin-bottom:5px;}
-.cat-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:12px;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.cat-foot{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border);}
-.cat-price{font-size:20px;font-weight:800;color:var(--gold);}
-.cat-price sub{font-size:11px;font-weight:400;color:var(--text3);}
-
-/* catalog list row */
-.cat-list-row{
-  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
-  padding:12px 18px;display:grid;
-  grid-template-columns:52px 1fr 160px 110px;
-  align-items:center;gap:14px;transition:border-color .2s;
-}
-.cat-list-row:hover{border-color:var(--border2);}
-.cat-row-img{width:48px;height:48px;border-radius:8px;object-fit:cover;background:var(--bg3);}
-.cat-row-ph{width:48px;height:48px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text3);}
-
-/* ═══ EMPTY STATE ═══ */
-.empty{
-  text-align:center;padding:60px 20px;color:var(--text3);
-  grid-column:1/-1;
-}
-.empty i{font-size:40px;margin-bottom:14px;opacity:.4;}
-.empty p{font-size:14px;}
-
-/* scrollbar */
-::-webkit-scrollbar{width:5px;height:5px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
-
-@media print{
-  .sidebar,.topbar,#notif-wrap,.modal-foot{display:none!important;}
-  .main{margin-left:0;}
-  .modal-overlay{position:static;background:white;}
-  .modal{max-height:none;border-radius:0;}
-}
-</style>
+        /* Language Switcher */
+        .lang-switcher { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+        .lang-btn {
+            background: rgba(255,255,255,0.12);
+            color: #ffdfa9;
+            border: 1.5px solid rgba(255,204,0,0.35);
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            min-height: 36px;
+        }
+        .lang-btn:hover, .lang-btn.active {
+            background: var(--accent-color);
+            color: #1f2937;
+            border-color: var(--accent-color);
+        }
+    </style>
 </head>
 <body>
 
-<!-- LOADING -->
-<div class="loading-veil" id="veil">
-  <div class="spinner"></div>
-  <div class="loading-txt" id="veilTxt">Initializing…</div>
-</div>
-
-<!-- SIDEBAR -->
-<aside class="sidebar">
-  <div class="logo" id="logoIcon">S</div>
-  <button class="nav-btn active" data-tab="analytics"><i class="fas fa-chart-line"></i><span class="nav-label">Dash</span><span class="nav-tip">Analytics</span></button>
-  <button class="nav-btn" data-tab="stock-analytics"><i class="fas fa-boxes"></i><span class="nav-label">Stock</span><span class="nav-tip">Stock Analytics</span></button>
-  <div class="nav-divider"></div>
-  <button class="nav-btn" data-tab="products"><i class="fas fa-box"></i><span class="nav-label">Items</span><span class="nav-tip">Products</span></button>
-  <button class="nav-btn" data-tab="add-product"><i class="fas fa-plus-circle"></i><span class="nav-label">Add</span><span class="nav-tip">Add Product</span></button>
-  <div class="nav-divider"></div>
-  <button class="nav-btn" data-tab="selling"><i class="fas fa-shopping-cart"></i><span class="nav-label">Sell</span><span class="nav-tip">Selling</span></button>
-  <button class="nav-btn" data-tab="bills"><i class="fas fa-receipt"></i><span class="nav-label">Bills</span><span class="nav-tip">Bills History</span></button>
-  <div class="nav-divider"></div>
-  <button class="nav-btn" data-tab="catalog"><i class="fas fa-book-open"></i><span class="nav-label">Cat.</span><span class="nav-tip">Product Catalog</span></button>
-  <div class="sidebar-bottom">
-    <button class="nav-btn" data-tab="admin"><i class="fas fa-cog"></i><span class="nav-label">Admin</span><span class="nav-tip">Admin Settings</span></button>
-  </div>
-</aside>
-
-<!-- MAIN -->
-<div class="main">
-  <!-- TOPBAR -->
-  <header class="topbar">
-    <span class="page-title" id="pageTitle">Analytics Dashboard</span>
-    <div class="topbar-mid"></div>
-    <div class="topbar-right">
-      <div class="invoice-chip" id="invChip" style="display:none" onclick="editNextInv()">
-        <i class="fas fa-receipt"></i>
-        <span id="invNum">T0001</span>
-      </div>
-      <div class="conn-badge" id="connBadge">
-        <div class="conn-dot"></div>
-        <span id="connTxt">Offline</span>
-      </div>
-    </div>
-  </header>
-
-  <div class="content">
-
-    <!-- ═══════════ ANALYTICS ═══════════ -->
-    <div id="analytics" class="tab active">
-      <div class="page-head"><h2>Analytics Dashboard</h2><p>Sales overview and performance metrics</p></div>
-      <div class="filter-row">
-        <label>From</label>
-        <input type="date" id="aFrom" class="date-in">
-        <label>To</label>
-        <input type="date" id="aTo" class="date-in">
-        <button class="btn btn-gold" onclick="updateAnalytics()"><i class="fas fa-filter"></i> Apply</button>
-        <button class="btn btn-ghost" onclick="resetA()"><i class="fas fa-undo"></i> Reset</button>
-        <button class="btn btn-ghost" style="margin-left:auto" onclick="exportAnalyticsCSV()"><i class="fas fa-download"></i> Export</button>
-      </div>
-      <div class="stats-row">
-        <div class="stat"><div class="stat-icon"><i class="fas fa-dollar-sign"></i></div><div class="stat-label">Total Revenue</div><div class="stat-val gold" id="aRev">Rs 0.00</div></div>
-        <div class="stat"><div class="stat-icon"><i class="fas fa-shopping-cart"></i></div><div class="stat-label">Total Orders</div><div class="stat-val teal" id="aOrders">0</div></div>
-        <div class="stat"><div class="stat-icon"><i class="fas fa-cube"></i></div><div class="stat-label">Products Sold</div><div class="stat-val amber" id="aSold">0</div></div>
-        <div class="stat"><div class="stat-icon"><i class="fas fa-chart-bar"></i></div><div class="stat-label">Avg Order Value</div><div class="stat-val" id="aAvg">Rs 0.00</div></div>
-      </div>
-      <div class="panel">
-        <div class="panel-head"><h3><i class="fas fa-trophy" style="color:var(--gold);margin-right:8px"></i>Best Selling Products</h3><span style="font-size:11px;color:var(--text3)">Top 10</span></div>
-        <div class="panel-body" id="bestSell"><div class="empty"><i class="fas fa-chart-bar"></i><p>No sales data yet</p></div></div>
-      </div>
+    <div class="lantern-container">
+        <div class="lantern l1"></div><div class="lantern l2"></div><div class="lantern l3"></div><div class="lantern l4"></div>
     </div>
 
-    <!-- ═══════════ STOCK ANALYTICS ═══════════ -->
-    <div id="stock-analytics" class="tab">
-      <div class="page-head"><h2>Stock Analytics</h2><p>Inventory overview and alerts</p></div>
-      <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
-        <button class="btn btn-ghost" onclick="exportStockCSV()"><i class="fas fa-download"></i> Export Stock Report</button>
-      </div>
-      <div class="stats-row">
-        <div class="stat"><div class="stat-icon"><i class="fas fa-boxes"></i></div><div class="stat-label">Total Products</div><div class="stat-val" id="sTotProds">0</div></div>
-        <div class="stat"><div class="stat-icon"><i class="fas fa-coins"></i></div><div class="stat-label">Stock Value</div><div class="stat-val gold" id="sStockVal">Rs 0.00</div></div>
-        <div class="stat"><div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-label">Low Stock ≤5</div><div class="stat-val amber" id="sLow">0</div></div>
-        <div class="stat"><div class="stat-icon"><i class="fas fa-times-circle"></i></div><div class="stat-label">Out of Stock</div><div class="stat-val red" id="sOut">0</div></div>
-      </div>
-      <div class="panel">
-        <div class="panel-head"><h3><i class="fas fa-exclamation-triangle" style="color:var(--amber);margin-right:8px"></i>Low Stock Alerts</h3></div>
-        <div class="panel-body" id="lowStockList"><div class="empty"><i class="fas fa-check-circle"></i><p>All products well stocked</p></div></div>
-      </div>
+    <header>
+        <h1><span class="secret-trigger" id="secretIcon">☸️</span> <span id="headerTitle">වෙසක් සුබපැතුම් පත් තරඟය - 2026</span></h1>
+        <p id="headerSubtitle">ඔබ කැමතිම බෞද්ධ නිර්මාණය සඳහා ඔබේ වටිනා මනාපය (Vote) ලබා දෙන්න</p>
+        <div class="lang-switcher">
+            <button class="lang-btn active" id="btnSi" onclick="setLanguage('si')">සිං</button>
+            <button class="lang-btn" id="btnTa" onclick="setLanguage('ta')">தமிழ்</button>
+            <button class="lang-btn" id="btnEn" onclick="setLanguage('en')">EN</button>
+        </div>
+    </header>
+
+    <main class="grid-container" id="votingGrid">
+        <p style="text-align:center; grid-column: 1/-1; color:#ffcc00; font-size:1.2rem;">දත්ත පූරණය වෙමින් පවතී...</p>
+    </main>
+
+    <div class="lightbox-modal" id="lightboxModal">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <button class="lightbox-nav lightbox-prev" onclick="changeLightboxImg(-1)">&#10094;</button>
+        <img class="lightbox-content" id="lightboxImg" src="">
+        <button class="lightbox-nav lightbox-next" onclick="changeLightboxImg(1)">&#10095;</button>
     </div>
 
-    <!-- ═══════════ PRODUCTS ═══════════ -->
-    <div id="products" class="tab">
-      <div class="page-head"><h2>Products</h2><p>Manage your product inventory</p></div>
-      <div class="search-bar">
-        <input type="text" class="search-input" id="prodSearch" placeholder="Search by name or ID…">
-        <select class="select" id="prodStockFilter" style="width:auto">
-          <option value="">All Stock</option>
-          <option value="in">In Stock</option>
-          <option value="low">Low Stock (≤5)</option>
-          <option value="out">Out of Stock</option>
-        </select>
-      </div>
-      <div class="prod-grid" id="prodGrid"><div class="empty"><i class="fas fa-boxes"></i><p>No products found</p></div></div>
-    </div>
-
-    <!-- ═══════════ ADD PRODUCT ═══════════ -->
-    <div id="add-product" class="tab">
-      <div class="page-head"><h2 id="addProdTitle">Add Product</h2><p id="addProdSub">Fill in the product details below</p></div>
-      <div class="panel">
-        <div class="panel-body">
-          <form id="prodForm">
-            <div class="form-grid" style="margin-bottom:18px">
-              <div class="fg"><label>Product ID *</label><input class="input" id="fId" required></div>
-              <div class="fg"><label>Product Name *</label><input class="input" id="fName" required></div>
-              <div class="fg"><label>Price (Rs) *</label><input class="input" id="fPrice" type="number" step="0.01" min="0" required></div>
-              <div class="fg"><label>Stock Quantity *</label><input class="input" id="fStock" type="number" min="0" required></div>
-              <div class="fg"><label>Description</label><textarea class="textarea" id="fDesc"></textarea></div>
-              <div class="fg">
-                <label>Product Image</label>
-                <div class="img-upload" id="imgUploadBox" onclick="document.getElementById('imgFile').click()">
-                  <div class="img-placeholder"><i class="fas fa-image"></i><span>Click to upload</span></div>
+    <div class="admin-modal" id="adminModal">
+        <div class="admin-content">
+            <h2 style="color:var(--primary-color); margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px; font-size:1.4rem;">☸️ Admin Control Panel</h2>
+            
+            <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
+                <h4 id="adminAddTitle" style="margin:0 0 12px 0; color:var(--secondary-color); font-size:1.05rem;">නව වෙසක් කාඩ්පතක් එක් කිරීම</h4>
+                <div class="form-group">
+                    <label id="labelName">නිර්මාණකරුගේ නම</label>
+                    <input type="text" id="artistName" placeholder="උදා: නිමල් පෙරේරා">
                 </div>
-                <input type="file" id="imgFile" accept="image/*" style="display:none" onchange="handleProdImg(event)">
-                <button type="button" class="btn btn-ghost" id="removeImgBtn" onclick="removeProdImg()" style="display:none;margin-top:8px"><i class="fas fa-trash"></i> Remove Image</button>
-              </div>
-            </div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap">
-              <button type="submit" class="btn btn-gold" id="prodSubmitBtn"><i class="fas fa-plus"></i> Add Product</button>
-              <button type="button" class="btn btn-ghost" onclick="resetProdForm()"><i class="fas fa-undo"></i> Clear</button>
-              <button type="button" class="btn btn-red" id="cancelEditProdBtn" onclick="cancelProdEdit()" style="display:none"><i class="fas fa-times"></i> Cancel Edit</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════════ SELLING ═══════════ -->
-    <div id="selling" class="tab">
-      <div class="page-head"><h2>Selling</h2><p>Create a new sale</p></div>
-      <div class="panel" style="margin-bottom:16px">
-        <div class="panel-body">
-          <div class="form-grid">
-            <div class="fg"><label>Customer Name *</label><input class="input" id="cName" placeholder="Enter name"></div>
-            <div class="fg"><label>Mobile *</label><input class="input" id="cMobile" type="tel" placeholder="Mobile number"></div>
-            <div class="fg"><label>Address</label><textarea class="textarea" id="cAddr" rows="2" placeholder="Optional"></textarea></div>
-          </div>
-        </div>
-      </div>
-      <div class="sell-grid">
-        <div class="panel">
-          <div class="panel-head"><h3>Available Products</h3></div>
-          <div style="padding:14px 16px 0">
-            <input type="text" class="search-input" id="sellSearch" placeholder="Search products…" oninput="loadSellProducts()">
-          </div>
-          <div class="panel-body" style="padding-top:14px">
-            <div class="prod-grid" id="sellGrid" style="max-height:520px;overflow-y:auto"></div>
-          </div>
-        </div>
-        <div>
-          <div class="panel">
-            <div class="panel-head"><h3>Cart</h3><span id="cartCount" style="font-size:11px;color:var(--text3)">0 items</span></div>
-            <div class="panel-body">
-              <div class="cart-items" id="cartItems"><div class="empty" style="padding:30px 0"><i class="fas fa-shopping-cart"></i><p>Cart empty</p></div></div>
-              <div class="cart-total-row"><span>Total</span><span id="cartTotal">Rs 0.00</span></div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
-                <button class="btn btn-teal" id="checkoutBtn" onclick="checkout()"><i class="fas fa-credit-card"></i> Checkout</button>
-                <button class="btn btn-red" onclick="clearCart()"><i class="fas fa-trash"></i> Clear</button>
-                <button class="btn btn-amber" id="cancelBillEditBtn" onclick="cancelBillEdit()" style="display:none"><i class="fas fa-times"></i> Cancel Edit</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════════ BILLS ═══════════ -->
-    <div id="bills" class="tab">
-      <div class="page-head"><h2>Bills History</h2><p>View and manage all transactions</p></div>
-      <div class="search-bar">
-        <input type="date" class="date-in" id="billDate">
-        <select class="select" id="billSort" style="width:auto">
-          <option value="newest">Newest First</option>
-          <option value="oldest">Oldest First</option>
-          <option value="highest">Highest Amount</option>
-          <option value="lowest">Lowest Amount</option>
-        </select>
-        <select class="select" id="billStatus" style="width:auto">
-          <option value="">All Status</option>
-          <option value="New">New</option>
-          <option value="Pending">Pending</option>
-          <option value="Completed">Completed</option>
-        </select>
-        <button class="btn btn-ghost" style="margin-left:auto" onclick="exportBillsCSV()"><i class="fas fa-file-csv"></i> Export CSV</button>
-      </div>
-      <div class="panel">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Bill No</th><th>Date & Time</th><th>Customer</th><th>Mobile</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="billsBody"><tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3)">No bills found</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════════ CATALOG ═══════════ -->
-    <div id="catalog" class="tab">
-      <div class="catalog-hero">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px">
-          <div>
-            <h2 id="catHeroTitle">Product Catalog</h2>
-            <p id="catHeroSub" style="color:var(--text2);margin-top:6px">Live inventory catalog</p>
-          </div>
-          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-            <div class="catalog-view-toggle">
-              <button class="cv-btn active" id="cvGrid" onclick="setCatView('grid')">⊞</button>
-              <button class="cv-btn" id="cvList" onclick="setCatView('list')">☰</button>
-            </div>
-            <button class="btn btn-ghost" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
-            <button class="btn btn-gold" onclick="exportCatalogPDF()"><i class="fas fa-download"></i> Export PDF</button>
-          </div>
-        </div>
-        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:18px">
-          <span style="font-size:12px;color:var(--text3)">Products: <strong style="color:var(--text)" id="catCount">—</strong></span>
-          <span style="font-size:12px;color:var(--text3)">Updated: <strong style="color:var(--text)" id="catDate">—</strong></span>
-        </div>
-      </div>
-      <div class="search-bar">
-        <input type="text" class="search-input" id="catSearch" placeholder="Search catalog…" oninput="renderCatalog()">
-        <select class="select" id="catFilter" style="width:auto" onchange="renderCatalog()">
-          <option value="">All Products</option>
-          <option value="in">In Stock</option>
-          <option value="low">Low Stock</option>
-          <option value="out">Out of Stock</option>
-        </select>
-      </div>
-      <div id="catContent"></div>
-    </div>
-
-    <!-- ═══════════ ADMIN ═══════════ -->
-    <div id="admin" class="tab">
-      <div class="page-head"><h2>Admin Settings</h2><p>Configure your business and system preferences</p></div>
-      <div class="panel">
-        <div class="panel-body">
-          <div class="settings-block">
-            <h3>Business Information</h3>
-            <div class="form-grid">
-              <div class="fg"><label>Business Name</label><input class="input" id="sBizName"></div>
-              <div class="fg"><label>Address</label><textarea class="textarea" id="sBizAddr" rows="2"></textarea></div>
-              <div class="fg"><label>Phone</label><input class="input" id="sBizPhone" type="tel"></div>
-              <div class="fg"><label>Email</label><input class="input" id="sBizEmail" type="email"></div>
-              <div class="fg">
-                <label>Business Logo</label>
-                <div class="img-upload" id="logoBox" onclick="document.getElementById('logoFile').click()">
-                  <div class="img-placeholder"><i class="fas fa-image"></i><span>Click to upload</span></div>
+                <div class="form-group">
+                    <label id="labelDept">දෙපාර්තමේන්තුව / අංශය</label>
+                    <input type="text" id="artistDept" placeholder="උදා: Manufacturing | Shift B">
                 </div>
-                <input type="file" id="logoFile" accept="image/*" style="display:none" onchange="handleLogoImg(event)">
-                <button type="button" class="btn btn-ghost" id="removeLogoBtn" onclick="removeLogo()" style="display:none;margin-top:8px"><i class="fas fa-trash"></i> Remove</button>
-              </div>
+                <div class="form-group">
+                    <label id="labelImages">පින්තූර තෝරන්න (Multiple Files)</label>
+                    <input type="file" id="artistImgFiles" accept="image/*" multiple style="padding:5px;">
+                    <div class="upload-status" id="uploadStatus"></div>
+                </div>
+                <button class="btn" id="submitCardBtn" onclick="addNewCard()">කාඩ්පත පද්ධතියට ඇතුළත් කරන්න</button>
             </div>
-          </div>
-          <div class="settings-block">
-            <h3>Invoice Number Settings</h3>
-            <div class="form-grid">
-              <div class="fg"><label>Prefix</label><input class="input" id="sPrefix" value="T" maxlength="3"></div>
-              <div class="fg"><label>Digits</label><input class="input" id="sDigits" type="number" value="4" min="3" max="6"></div>
-              <div class="fg"><label>Starting Number</label><input class="input" id="sStart" type="number" value="1" min="1"></div>
-              <div class="fg"><label>Format</label>
-                <select class="select" id="sFormat">
-                  <option value="prefix-number">Prefix+Number (T0001)</option>
-                  <option value="prefix-year-number">Prefix+Year+Number (T2024-0001)</option>
-                  <option value="year-month-number">Year+Month+Number (2024-12-0001)</option>
-                  <option value="sequential">Sequential Only (0001)</option>
-                </select>
-              </div>
-              <div class="fg"><label>&nbsp;</label><button class="btn btn-ghost" onclick="previewInvNum()" style="width:100%"><i class="fas fa-eye"></i> Preview Format</button></div>
-              <div class="fg"><label>&nbsp;</label><button class="btn btn-amber" onclick="resetInvCounter()" style="width:100%"><i class="fas fa-redo"></i> Reset Counter</button></div>
+
+            <h3 id="adminVoteTitle" style="color:var(--primary-color); margin-top:25px; font-size:1.2rem;">සජීවී ඡන්ද ගණන් කිරීම</h3>
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr><th id="thName">නම</th><th id="thDept">අංශය</th><th id="thVotes">ඡන්දය</th><th id="thManage">කළමනාකරණය</th></tr>
+                    </thead>
+                    <tbody id="adminTableBody"></tbody>
+                </table>
             </div>
-          </div>
-          <div class="settings-block">
-            <h3>Receipt Settings</h3>
-            <div class="form-grid">
-              <div class="fg"><label>Receipt Footer</label><textarea class="textarea" id="sFooter" rows="2">Thank you for your business!</textarea></div>
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-gold" onclick="saveSettings()"><i class="fas fa-save"></i> Save Settings</button>
-            <button class="btn btn-red" onclick="clearAllData()"><i class="fas fa-trash"></i> Clear All Data</button>
-          </div>
+            <button id="closeAdminBtn" class="btn close-admin" onclick="closeAdminPanel()">පැනලය වසන්න</button>
         </div>
-      </div>
     </div>
 
-  </div><!-- /content -->
-</div><!-- /main -->
+    <footer>
+        Developed by <span>Tharaka Geethanjana</span> | ICT Department - BKAT <br>
+        <small style="opacity: 0.6; font-size: 0.8rem; display:block; margin-top: 5px;">© 2026 All Rights Reserved</small>
+    </footer>
 
-<!-- BILL MODAL -->
-<div class="modal-overlay" id="billModal">
-  <div class="modal">
-    <div class="modal-head">
-      <h3 id="modalTitle">Invoice</h3>
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-    </div>
-    <div class="modal-body" id="modalBody"></div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="printBill()"><i class="fas fa-print"></i> Print</button>
-      <button class="btn btn-gold" onclick="downloadBillPDF()"><i class="fas fa-download"></i> Download PDF</button>
-      <button class="btn btn-ghost" onclick="closeModal()"><i class="fas fa-times"></i> Close</button>
-    </div>
-  </div>
-</div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-<div id="notif-wrap"></div>
-
-<script>
-// ═══════════════════ FIREBASE ═══════════════════
-const fbCfg = {
-  apiKey:"AIzaSyAdRs5fVXule7aa3-f7-uq7IGg8WUBhNIs",
-  authDomain:"tharusha-11f4a.firebaseapp.com",
-  databaseURL:"https://tharusha-11f4a-default-rtdb.firebaseio.com",
-  projectId:"tharusha-11f4a",
-  storageBucket:"tharusha-11f4a.firebasestorage.app",
-  messagingSenderId:"1055494912450",
-  appId:"1:1055494912450:web:649a8c27b137d8c0d0fe5b"
-};
-firebase.initializeApp(fbCfg);
-const db = firebase.database();
-
-// ═══════════════════ STATE ═══════════════════
-let products=[], bills=[], cart=[];
-let settings={
-  businessName:"Stationary Pro",businessAddress:"123 Main Street, City",
-  businessPhone:"(123) 456-7890",businessEmail:"info@stationarypro.com",
-  logoBase64:null,receiptFooter:"Thank you for your business!",
-  invoicePrefix:"T",invoiceDigits:4,startingNumber:1,invoiceFormat:"prefix-number"
-};
-let editProdId=null, editBillNum=null, nextInvNum="T0001";
-let prodImgB64=null, logoImgB64=null, catView='grid';
-
-// ═══════════════════ INIT ═══════════════════
-document.addEventListener('DOMContentLoaded',()=>{
-  showVeil("Initializing…");
-  initNav();
-  initForms();
-  setupFirebase();
-  loadData();
-});
-
-function setupFirebase(){
-  db.ref('.info/connected').on('value',snap=>{
-    const on=snap.val()===true;
-    const badge=document.getElementById('connBadge');
-    const dot=badge.querySelector('.conn-dot');
-    const txt=document.getElementById('connTxt');
-    if(on){badge.className='conn-badge online';dot.classList.add('pulse');txt.textContent='Online';}
-    else{badge.className='conn-badge';dot.classList.remove('pulse');txt.textContent='Offline';}
-  });
-}
-
-function initNav(){
-  document.querySelectorAll('.nav-btn[data-tab]').forEach(btn=>{
-    btn.addEventListener('click',()=>showTab(btn.dataset.tab));
-  });
-}
-
-function initForms(){
-  document.getElementById('prodForm').addEventListener('submit',e=>{e.preventDefault();editProdId?updateProd():addProd();});
-  ['prodSearch','prodStockFilter'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el)el.addEventListener('input',loadProducts);el&&el.addEventListener('change',loadProducts);
-  });
-  ['billDate','billSort','billStatus'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){el.addEventListener('change',loadBills);el.addEventListener('input',loadBills);}
-  });
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
-  document.getElementById('billModal').addEventListener('click',e=>{if(e.target===document.getElementById('billModal'))closeModal();});
-}
-
-// ═══════════════════ DATA ═══════════════════
-function loadData(){
-  showVeil("Loading data…");
-  db.ref('settings').once('value').then(s=>{
-    const d=s.val();if(d)settings={...settings,...d};
-    applySettingsUI();updateInvDisplay();
-    return db.ref('products').once('value');
-  }).then(s=>{
-    const d=s.val();
-    products=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
-    loadProducts();loadSellProducts();updateStockAnalytics();
-    return db.ref('bills').once('value');
-  }).then(s=>{
-    const d=s.val();
-    bills=d?Object.keys(d).map(k=>({billNumber:k,...d[k]})):[];
-    loadBills();updateAnalytics();
-    hideVeil();notify("Data loaded","success");
-  }).catch(err=>{hideVeil();notify("Load error: "+err.message,"error");});
-}
-
-function cleanProd(p){
-  const c={id:p.id,name:p.name,price:p.price,stock:p.stock,description:p.description||''};
-  if(p.imageBase64)c.imageBase64=p.imageBase64;
-  return c;
-}
-
-function saveProds(){
-  const obj={};products.forEach(p=>{obj[p.id]=cleanProd(p);});
-  return db.ref('products').set(obj).then(()=>{updateStockAnalytics();updateCatalogMeta();}).catch(err=>notify("Save error: "+err.message,"error"));
-}
-
-function saveBills(){
-  const obj={};bills.forEach(b=>{obj[b.billNumber]=b;});
-  return db.ref('bills').set(obj).catch(err=>notify("Save error: "+err.message,"error"));
-}
-
-function saveSettingsDB(){
-  showVeil("Saving…");
-  return db.ref('settings').set(settings).then(()=>{hideVeil();notify("Settings saved","success");}).catch(err=>{hideVeil();notify("Error: "+err.message,"error");});
-}
-
-// ═══════════════════ INVOICE NUMBERS ═══════════════════
-function genInvNum(){
-  const {invoicePrefix:pfx,invoiceDigits:dig,startingNumber:start,invoiceFormat:fmt}=settings;
-  const now=new Date(),d=parseInt(dig)||4,s=parseInt(start)||1;
-  let max=s-1;
-  if(bills.length){
-    const nums=bills.map(b=>{
-      const n=b.billNumber;
-      if(fmt==='prefix-number'){const m=n.match(new RegExp(`^${pfx}(\\d+)`));return m?parseInt(m[1]):0;}
-      if(fmt==='prefix-year-number'){const m=n.match(new RegExp(`^${pfx}\\d{4}-(\\d+)`));return m?parseInt(m[1]):0;}
-      if(fmt==='year-month-number'){const m=n.match(/^\d{4}-\d{2}-(\d+)/);return m?parseInt(m[1]):0;}
-      if(fmt==='sequential')return parseInt(n)||0;
-      return 0;
-    }).filter(n=>!isNaN(n));
-    max=nums.length?Math.max(...nums):s-1;
-  }
-  const pad=(max+1).toString().padStart(d,'0');
-  if(fmt==='prefix-year-number')return`${pfx}${now.getFullYear()}-${pad}`;
-  if(fmt==='year-month-number')return`${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${pad}`;
-  if(fmt==='sequential')return pad;
-  return`${pfx}${pad}`;
-}
-
-function updateInvDisplay(){
-  nextInvNum=genInvNum();
-  document.getElementById('invNum').textContent=nextInvNum;
-}
-
-function editNextInv(){
-  const n=prompt(`Next Invoice Number (current: ${nextInvNum})`,nextInvNum);
-  if(!n||n.trim()===''||n===nextInvNum)return;
-  if(bills.some(b=>b.billNumber===n)){notify("Number already exists!","error");return;}
-  nextInvNum=n;
-  document.getElementById('invNum').textContent=n;
-  notify("Invoice number set to "+n,"success");
-}
-
-// ═══════════════════ NAVIGATION ═══════════════════
-const TAB_NAMES={analytics:"Analytics Dashboard","stock-analytics":"Stock Analytics",products:"Products","add-product":"Add Product",selling:"Selling",bills:"Bills History",catalog:"Product Catalog",admin:"Admin Settings"};
-
-function showTab(id){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  const tab=document.getElementById(id);
-  if(tab)tab.classList.add('active');
-  document.querySelectorAll(`.nav-btn[data-tab="${id}"]`).forEach(b=>b.classList.add('active'));
-  document.getElementById('pageTitle').textContent=TAB_NAMES[id]||id;
-  const chip=document.getElementById('invChip');
-  chip.style.display=id==='selling'?'flex':'none';
-  if(id==='products')loadProducts();
-  if(id==='selling')loadSellProducts();
-  if(id==='bills')loadBills();
-  if(id==='analytics')updateAnalytics();
-  if(id==='stock-analytics')updateStockAnalytics();
-  if(id==='catalog'){updateCatalogMeta();renderCatalog();}
-  if(id==='add-product'&&!editProdId)resetProdForm();
-}
-
-// ═══════════════════ PRODUCTS ═══════════════════
-function emojiFor(name){
-  const n=name.toLowerCase();
-  if(n.includes('pen')||n.includes('pencil'))return'✏️';
-  if(n.includes('book')||n.includes('note'))return'📖';
-  if(n.includes('ruler')||n.includes('scale'))return'📏';
-  if(n.includes('paper')||n.includes('sheet'))return'📄';
-  if(n.includes('file')||n.includes('folder'))return'📁';
-  if(n.includes('eraser'))return'🩹';
-  if(n.includes('scissor')||n.includes('cutter'))return'✂️';
-  if(n.includes('ink')||n.includes('marker'))return'🖌️';
-  return'📦';
-}
-
-function stockBadge(stock){
-  if(stock===0)return`<span class="badge badge-out">Out of Stock</span>`;
-  if(stock<=5)return`<span class="badge badge-low">Low: ${stock}</span>`;
-  return`<span class="badge badge-ok">${stock} in stock</span>`;
-}
-
-function loadProducts(){
-  const s=(document.getElementById('prodSearch')?.value||'').toLowerCase();
-  const f=document.getElementById('prodStockFilter')?.value||'';
-  let list=products.filter(p=>{
-    const ms=p.name.toLowerCase().includes(s)||p.id.toLowerCase().includes(s);
-    if(f==='in')return ms&&p.stock>0;
-    if(f==='low')return ms&&p.stock>0&&p.stock<=5;
-    if(f==='out')return ms&&p.stock===0;
-    return ms;
-  });
-  const grid=document.getElementById('prodGrid');
-  if(!grid)return;
-  if(!list.length){grid.innerHTML='<div class="empty"><i class="fas fa-boxes"></i><p>No products found</p></div>';return;}
-  grid.innerHTML=list.map(p=>{
-    const img=p.imageBase64?`<img class="prod-img" src="${p.imageBase64}" alt="${p.name}">`:`<div class="prod-img-ph">${emojiFor(p.name)}</div>`;
-    return`<div class="prod-card">${img}<div class="prod-body">
-      <div class="prod-name">${p.name}</div>
-      <div class="prod-id">${p.id}</div>
-      <div class="prod-footer">${stockBadge(p.stock)}<div class="prod-price">Rs ${parseFloat(p.price).toFixed(2)}</div></div>
-      <div class="prod-actions">
-        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="editProd('${p.id}')"><i class="fas fa-edit"></i> Edit</button>
-        <button class="btn btn-red" style="flex:1;justify-content:center" onclick="delProd('${p.id}')"><i class="fas fa-trash"></i></button>
-      </div>
-    </div></div>`;
-  }).join('');
-}
-
-function loadSellProducts(){
-  const s=(document.getElementById('sellSearch')?.value||'').toLowerCase();
-  let list=products.filter(p=>p.stock>0&&(p.name.toLowerCase().includes(s)||p.id.toLowerCase().includes(s)));
-  const grid=document.getElementById('sellGrid');
-  if(!grid)return;
-  if(!list.length){grid.innerHTML='<div class="empty"><i class="fas fa-boxes"></i><p>No products available</p></div>';return;}
-  grid.innerHTML=list.map(p=>{
-    const img=p.imageBase64?`<img class="prod-img" src="${p.imageBase64}" alt="${p.name}">`:`<div class="prod-img-ph">${emojiFor(p.name)}</div>`;
-    const low=p.stock<=5?`<span class="badge badge-low" style="margin-left:6px">Low</span>`:'';
-    return`<div class="prod-card">${img}<div class="prod-body">
-      <div class="prod-name">${p.name}${low}</div>
-      <div class="prod-id">${p.id}</div>
-      <div class="prod-footer"><div class="prod-price">Rs ${parseFloat(p.price).toFixed(2)}</div><span style="font-size:11px;color:var(--text3)">${p.stock} left</span></div>
-      <button class="btn btn-teal" style="width:100%;margin-top:10px;justify-content:center" onclick="addToCart('${p.id}')"><i class="fas fa-cart-plus"></i> Add to Cart</button>
-    </div></div>`;
-  }).join('');
-}
-
-function addProd(){
-  const p={id:document.getElementById('fId').value.trim(),name:document.getElementById('fName').value.trim(),price:parseFloat(document.getElementById('fPrice').value),stock:parseInt(document.getElementById('fStock').value),description:document.getElementById('fDesc').value.trim()};
-  if(!p.id||!p.name||isNaN(p.price)||isNaN(p.stock)){notify("Fill all required fields","error");return;}
-  if(products.find(x=>x.id===p.id)){notify("Product ID exists","error");return;}
-  if(prodImgB64){p.imageBase64=prodImgB64;prodImgB64=null;}
-  showVeil("Adding product…");
-  products.push(p);
-  saveProds().then(()=>{resetProdForm();loadProducts();loadSellProducts();notify("Product added","success");hideVeil();}).catch(()=>hideVeil());
-}
-
-function editProd(id){
-  const p=products.find(x=>x.id===id);if(!p)return;
-  editProdId=id;
-  document.getElementById('fId').value=p.id;
-  document.getElementById('fName').value=p.name;
-  document.getElementById('fPrice').value=p.price;
-  document.getElementById('fStock').value=p.stock;
-  document.getElementById('fDesc').value=p.description||'';
-  const box=document.getElementById('imgUploadBox');
-  if(p.imageBase64){box.innerHTML=`<img src="${p.imageBase64}" style="width:100%;height:100%;object-fit:cover">`;document.getElementById('removeImgBtn').style.display='inline-flex';}
-  else{box.innerHTML='<div class="img-placeholder"><i class="fas fa-image"></i><span>Click to upload</span></div>';document.getElementById('removeImgBtn').style.display='none';}
-  document.getElementById('addProdTitle').textContent='Edit Product';
-  document.getElementById('addProdSub').textContent='Update the product details';
-  document.getElementById('prodSubmitBtn').innerHTML='<i class="fas fa-save"></i> Update Product';
-  document.getElementById('cancelEditProdBtn').style.display='inline-flex';
-  showTab('add-product');
-}
-
-function updateProd(){
-  const idx=products.findIndex(x=>x.id===editProdId);if(idx===-1)return;
-  const p={id:document.getElementById('fId').value.trim(),name:document.getElementById('fName').value.trim(),price:parseFloat(document.getElementById('fPrice').value),stock:parseInt(document.getElementById('fStock').value),description:document.getElementById('fDesc').value.trim()};
-  if(!p.id||!p.name||isNaN(p.price)||isNaN(p.stock)){notify("Fill all required fields","error");return;}
-  if(p.id!==editProdId&&products.find(x=>x.id===p.id)){notify("Product ID exists","error");return;}
-  const oldImg=products[idx].imageBase64;
-  if(prodImgB64){p.imageBase64=prodImgB64;prodImgB64=null;}else if(oldImg){p.imageBase64=oldImg;}
-  showVeil("Updating…");
-  products[idx]=p;
-  saveProds().then(()=>{resetProdForm();loadProducts();loadSellProducts();notify("Product updated","success");hideVeil();}).catch(()=>hideVeil());
-}
-
-function delProd(id){
-  if(!confirm('Delete this product?'))return;
-  products=products.filter(p=>p.id!==id);
-  saveProds().then(()=>{loadProducts();loadSellProducts();notify("Product deleted","success");});
-}
-
-function resetProdForm(){
-  document.getElementById('prodForm').reset();
-  document.getElementById('addProdTitle').textContent='Add Product';
-  document.getElementById('addProdSub').textContent='Fill in the product details below';
-  document.getElementById('prodSubmitBtn').innerHTML='<i class="fas fa-plus"></i> Add Product';
-  document.getElementById('imgUploadBox').innerHTML='<div class="img-placeholder"><i class="fas fa-image"></i><span>Click to upload</span></div>';
-  document.getElementById('removeImgBtn').style.display='none';
-  document.getElementById('cancelEditProdBtn').style.display='none';
-  document.getElementById('imgFile').value='';
-  editProdId=null;prodImgB64=null;
-}
-function cancelProdEdit(){resetProdForm();notify("Edit cancelled","info");}
-
-function handleProdImg(e){
-  const f=e.target.files[0];if(!f)return;
-  if(f.size>2*1024*1024){notify("Image must be <2MB","error");return;}
-  const r=new FileReader();r.onload=ev=>{prodImgB64=ev.target.result;document.getElementById('imgUploadBox').innerHTML=`<img src="${prodImgB64}" style="width:100%;height:100%;object-fit:cover">`;document.getElementById('removeImgBtn').style.display='inline-flex';};r.readAsDataURL(f);
-}
-function removeProdImg(){document.getElementById('imgUploadBox').innerHTML='<div class="img-placeholder"><i class="fas fa-image"></i><span>Click to upload</span></div>';document.getElementById('removeImgBtn').style.display='none';document.getElementById('imgFile').value='';prodImgB64=null;}
-
-// ═══════════════════ CART ═══════════════════
-function addToCart(id){
-  const p=products.find(x=>x.id===id);if(!p){notify("Product not found","error");return;}
-  if(p.stock===0){notify("Out of stock","error");return;}
-  const item=cart.find(x=>x.id===id);
-  if(item){if(item.quantity>=p.stock){notify("Not enough stock","error");return;}item.quantity++;item.total=item.quantity*item.price;}
-  else cart.push({id:p.id,name:p.name,price:p.price,quantity:1,total:p.price});
-  renderCart();notify(`${p.name} added`,"success");
-}
-
-function renderCart(){
-  const wrap=document.getElementById('cartItems');
-  const total=cart.reduce((s,i)=>s+i.total,0);
-  document.getElementById('cartCount').textContent=cart.length+' item'+(cart.length!==1?'s':'');
-  document.getElementById('cartTotal').textContent=`Rs ${total.toFixed(2)}`;
-  if(!cart.length){wrap.innerHTML='<div class="empty" style="padding:30px 0"><i class="fas fa-shopping-cart"></i><p>Cart empty</p></div>';return;}
-  wrap.innerHTML=cart.map(item=>`<div class="cart-item">
-    <div style="flex:1">
-      <div class="cart-name">${item.name}</div>
-      <div class="cart-sub">Rs ${item.price.toFixed(2)} each</div>
-    </div>
-    <div class="qty-ctrl">
-      <button class="qty-btn" onclick="changeQty('${item.id}',-1)">−</button>
-      <span class="qty-num">${item.quantity}</span>
-      <button class="qty-btn" onclick="changeQty('${item.id}',1)">+</button>
-    </div>
-    <div class="cart-price">Rs ${item.total.toFixed(2)}</div>
-  </div>`).join('');
-}
-
-function changeQty(id,d){
-  const item=cart.find(x=>x.id===id);const p=products.find(x=>x.id===id);if(!item||!p)return;
-  const nq=item.quantity+d;
-  if(nq<1){cart=cart.filter(x=>x.id!==id);}
-  else if(nq>p.stock){notify("Not enough stock","error");return;}
-  else{item.quantity=nq;item.total=nq*item.price;}
-  renderCart();
-}
-
-function clearCart(){
-  if(!cart.length){notify("Cart already empty","info");return;}
-  if(confirm('Clear cart?')){cart=[];renderCart();notify("Cart cleared","success");}
-}
-
-// ═══════════════════ CHECKOUT ═══════════════════
-function checkout(){
-  if(!cart.length){notify("Cart is empty","error");return;}
-  const cName=document.getElementById('cName').value.trim();
-  const cMobile=document.getElementById('cMobile').value.trim();
-  const cAddr=document.getElementById('cAddr').value.trim();
-  if(!cName||!cMobile){notify("Enter customer name and mobile","error");return;}
-  const btn=document.getElementById('checkoutBtn');
-  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Processing…';
-  const total=cart.reduce((s,i)=>s+i.total,0);
-  const date=new Date().toISOString().split('T')[0];
-  const time=new Date().toLocaleTimeString();
-  const isEdit=!!editBillNum;const editNum=editBillNum;
-  let bill=null;
-  document.getElementById('cancelBillEditBtn').style.display='none';
-  if(isEdit){
-    const idx=bills.findIndex(b=>b.billNumber===editNum);
-    if(idx!==-1){
-      bills[idx].items.forEach(oi=>{const p=products.find(x=>x.id===oi.id);if(p)p.stock+=oi.quantity;});
-      cart.forEach(ci=>{const p=products.find(x=>x.id===ci.id);if(p){p.stock-=ci.quantity;if(p.stock<0)p.stock=0;}});
-      bills[idx]={billNumber:editNum,date,time,items:[...cart],total,customer:{name:cName,mobile:cMobile,address:cAddr},status:bills[idx].status||'New'};
-      bill=bills[idx];
-    }
-  }else{
-    const num=nextInvNum;
-    cart.forEach(ci=>{const p=products.find(x=>x.id===ci.id);if(p){p.stock-=ci.quantity;if(p.stock<0)p.stock=0;}});
-    bill={billNumber:num,date,time,items:[...cart],total,customer:{name:cName,mobile:cMobile,address:cAddr},status:'New'};
-    bills.push(bill);
-  }
-  editBillNum=null;
-  cart=[];renderCart();
-  document.getElementById('cName').value='';document.getElementById('cMobile').value='';document.getElementById('cAddr').value='';
-  btn.disabled=false;btn.innerHTML='<i class="fas fa-credit-card"></i> Checkout';
-  if(!isEdit&&bill){notify("Sale completed! 🎉","success");showBillModal(bill);}
-  saveProds().then(()=>saveBills()).then(()=>{
-    loadProducts();loadSellProducts();loadBills();updateAnalytics();updateStockAnalytics();updateInvDisplay();
-    if(isEdit)notify("Bill updated ✅","success");
-  }).catch(err=>notify("Sync failed: "+err.message,"warning"));
-}
-
-// ═══════════════════ BILLS ═══════════════════
-function loadBills(){
-  const dateF=document.getElementById('billDate').value;
-  const sort=document.getElementById('billSort').value;
-  const status=document.getElementById('billStatus').value;
-  let list=[...bills];
-  if(dateF)list=list.filter(b=>b.date===dateF);
-  if(status)list=list.filter(b=>(b.status||'New')===status);
-  list.sort((a,b)=>{
-    if(sort==='newest')return new Date(b.date)-new Date(a.date);
-    if(sort==='oldest')return new Date(a.date)-new Date(b.date);
-    if(sort==='highest')return b.total-a.total;
-    if(sort==='lowest')return a.total-b.total;
-    return 0;
-  });
-  const tbody=document.getElementById('billsBody');
-  if(!list.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3)">No bills found</td></tr>';return;}
-  const sc={New:'s-new',Pending:'s-pending',Completed:'s-completed'};
-  tbody.innerHTML=list.map(b=>`<tr>
-    <td class="td-mono">${b.billNumber}</td>
-    <td>${b.date}<br><small style="color:var(--text3)">${b.time}</small></td>
-    <td>${b.customer.name}</td>
-    <td class="td-mono">${b.customer.mobile}</td>
-    <td class="td-gold">Rs ${b.total.toFixed(2)}</td>
-    <td><span class="status ${sc[b.status||'New']||'s-new'}">${b.status||'New'}</span></td>
-    <td>
-      <div style="display:flex;gap:5px;flex-wrap:wrap">
-        <button class="act-btn act-view" onclick="viewBill('${b.billNumber}')" title="View"><i class="fas fa-eye"></i></button>
-        <button class="act-btn act-print" onclick="printBillDirect('${b.billNumber}')" title="Print"><i class="fas fa-print"></i></button>
-        <button class="act-btn act-edit" onclick="editBill('${b.billNumber}')" title="Edit"><i class="fas fa-edit"></i></button>
-        <button class="act-btn act-status" onclick="cycleBillStatus('${b.billNumber}')" title="Status"><i class="fas fa-sync-alt"></i></button>
-        <button class="act-btn act-hash" onclick="editBillNum2('${b.billNumber}')" title="Edit No."><i class="fas fa-hashtag"></i></button>
-        <button class="act-btn act-del" onclick="delBill('${b.billNumber}')" title="Delete"><i class="fas fa-trash"></i></button>
-      </div>
-    </td>
-  </tr>`).join('');
-}
-
-function viewBill(num){const b=bills.find(x=>x.billNumber===num);if(!b)return;showBillModal(b);}
-
-function showBillModal(bill){
-  const sc={New:'s-new',Pending:'s-pending',Completed:'s-completed'};
-  document.getElementById('modalTitle').textContent=`Invoice #${bill.billNumber}`;
-  document.getElementById('modalBody').innerHTML=`
-    <div class="bill-2col">
-      <div class="bill-section"><h4>Business</h4>
-        <div class="bill-row"><span class="bill-lbl">Name</span><span class="bill-val">${settings.businessName}</span></div>
-        <div class="bill-row"><span class="bill-lbl">Address</span><span class="bill-val">${settings.businessAddress}</span></div>
-        <div class="bill-row"><span class="bill-lbl">Phone</span><span class="bill-val">${settings.businessPhone}</span></div>
-      </div>
-      <div class="bill-section"><h4>Customer</h4>
-        <div class="bill-row"><span class="bill-lbl">Name</span><span class="bill-val">${bill.customer.name}</span></div>
-        <div class="bill-row"><span class="bill-lbl">Mobile</span><span class="bill-val">${bill.customer.mobile}</span></div>
-        ${bill.customer.address?`<div class="bill-row"><span class="bill-lbl">Address</span><span class="bill-val">${bill.customer.address}</span></div>`:''}
-        <div class="bill-row"><span class="bill-lbl">Date</span><span class="bill-val">${bill.date} ${bill.time}</span></div>
-        <div class="bill-row"><span class="bill-lbl">Status</span><span class="bill-val"><span class="status ${sc[bill.status||'New']}">${bill.status||'New'}</span></span></div>
-      </div>
-    </div>
-    <table class="bill-table">
-      <thead><tr><th>#</th><th>ID</th><th>Product</th><th>Price</th><th>Qty</th><th>Total</th></tr></thead>
-      <tbody>${bill.items.map((it,i)=>`<tr><td>${i+1}</td><td class="td-mono" style="color:var(--text3)">${it.id}</td><td>${it.name}</td><td>Rs ${it.price.toFixed(2)}</td><td>${it.quantity}</td><td style="color:var(--gold);font-weight:700">Rs ${it.total.toFixed(2)}</td></tr>`).join('')}</tbody>
-    </table>
-    <div class="bill-total-box"><span>Grand Total</span><span>Rs ${bill.total.toFixed(2)}</span></div>
-    <div class="bill-footer-txt">${settings.receiptFooter}</div>`;
-  document.getElementById('billModal').classList.add('open');
-}
-
-function closeModal(){document.getElementById('billModal').classList.remove('open');}
-
-function cycleBillStatus(num){
-  const b=bills.find(x=>x.billNumber===num);if(!b)return;
-  const s=['New','Pending','Completed'];b.status=s[(s.indexOf(b.status||'New')+1)%s.length];
-  saveBills().then(()=>{loadBills();notify(`Bill #${num} → ${b.status}`,"success");});
-}
-
-function delBill(num){
-  if(!confirm(`Delete bill #${num}?`))return;
-  bills=bills.filter(b=>b.billNumber!==num);
-  saveBills().then(()=>{loadBills();updateAnalytics();notify("Bill deleted","success");});
-}
-
-function editBill(num){
-  const b=bills.find(x=>x.billNumber===num);if(!b)return;
-  editBillNum=num;
-  document.getElementById('cName').value=b.customer.name;
-  document.getElementById('cMobile').value=b.customer.mobile;
-  document.getElementById('cAddr').value=b.customer.address||'';
-  cart=b.items.map(i=>({...i,total:i.price*i.quantity}));
-  renderCart();
-  document.getElementById('invNum').textContent=`Editing: ${num}`;
-  document.getElementById('invChip').style.display='flex';
-  document.getElementById('cancelBillEditBtn').style.display='inline-flex';
-  showTab('selling');notify(`Editing Bill #${num}`,"info");
-}
-
-function cancelBillEdit(){
-  if(!editBillNum)return;
-  cart=[];renderCart();
-  document.getElementById('cName').value='';document.getElementById('cMobile').value='';document.getElementById('cAddr').value='';
-  document.getElementById('cancelBillEditBtn').style.display='none';
-  editBillNum=null;updateInvDisplay();notify("Edit cancelled","info");
-}
-
-function editBillNum2(num){
-  const b=bills.find(x=>x.billNumber===num);if(!b)return;
-  const n=prompt(`Edit Invoice Number (current: ${num})`,num);
-  if(!n||n===num)return;
-  if(bills.some(x=>x.billNumber===n&&x.billNumber!==num)){notify("Number exists","error");return;}
-  b.billNumber=n;
-  saveBills().then(()=>{loadBills();updateInvDisplay();notify(`Updated to ${n}`,"success");});
-}
-
-function printBill(){window.print();}
-
-function downloadBillPDF(){
-  const title=document.getElementById('modalTitle').textContent;
-  const num=title.replace('Invoice #','');
-  const b=bills.find(x=>x.billNumber===num);if(!b)return;
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF();
-  const pw=doc.internal.pageSize.getWidth(),m=14;let y=m;
-  doc.setFillColor(13,13,15);doc.rect(0,0,pw,32,'F');
-  doc.setFillColor(212,168,67);doc.rect(0,32,pw,2,'F');
-  doc.setFont('helvetica','bold');doc.setFontSize(18);doc.setTextColor(240,238,232);
-  doc.text(settings.businessName,pw/2,16,{align:'center'});
-  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(160,157,150);
-  if(settings.businessAddress)doc.text(settings.businessAddress,pw/2,24,{align:'center'});
-  y=42;
-  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(13,13,15);
-  doc.text(`INVOICE #${b.billNumber}`,m,y);
-  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(90,88,85);
-  doc.text(`Date: ${b.date}   Time: ${b.time}   Status: ${b.status||'New'}`,m,y+7);
-  y+=18;
-  doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(13,13,15);
-  doc.text('Customer:',m,y);
-  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(90,88,85);
-  doc.text(`${b.customer.name}   ${b.customer.mobile}${b.customer.address?' · '+b.customer.address:''}`,m+22,y);
-  y+=14;
-  const cols=[m,m+26,m+70,m+120,m+143];
-  doc.setFillColor(28,28,31);doc.rect(m,y,pw-m*2,9,'F');
-  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(212,168,67);
-  ['#','Product ID','Product Name','Qty','Total (Rs)'].forEach((h,i)=>doc.text(h,cols[i]+2,y+6));
-  y+=13;
-  b.items.forEach((it,i)=>{
-    if(y>265){doc.addPage();y=m;}
-    if(i%2===0){doc.setFillColor(20,20,22);doc.rect(m,y-4,pw-m*2,10,'F');}
-    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(90,88,85);
-    doc.text(String(i+1),cols[0]+2,y+2);
-    doc.text((it.id||'').substring(0,14),cols[1]+2,y+2);
-    doc.setTextColor(240,238,232);doc.text(it.name.substring(0,28),cols[2]+2,y+2);
-    doc.setTextColor(90,88,85);doc.text(String(it.quantity),cols[3]+2,y+2);
-    doc.setTextColor(212,168,67);doc.setFont('helvetica','bold');
-    doc.text(`Rs ${it.total.toFixed(2)}`,cols[4]+2,y+2);
-    y+=10;
-  });
-  y+=8;
-  doc.setFillColor(28,28,31);doc.rect(m,y,pw-m*2,14,'F');
-  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(240,238,232);
-  doc.text('GRAND TOTAL',m+4,y+9);
-  doc.setTextColor(212,168,67);doc.text(`Rs ${b.total.toFixed(2)}`,pw-m-4,y+9,{align:'right'});
-  y+=22;
-  doc.setFont('helvetica','italic');doc.setFontSize(9);doc.setTextColor(90,88,85);
-  doc.text(settings.receiptFooter,pw/2,y,{align:'center'});
-  doc.save(`Invoice_${b.billNumber}.pdf`);
-  notify("PDF downloaded","success");
-}
-
-function printBillDirect(num){
-  const b=bills.find(x=>x.billNumber===num);if(!b)return;
-  const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><title>Invoice #${b.billNumber}</title>
-  <style>body{font-family:monospace;margin:20px;color:#000}h1{font-size:22px;text-align:center}
-  .head{text-align:center;border-bottom:2px solid #000;padding-bottom:12px;margin-bottom:16px}
-  table{width:100%;border-collapse:collapse;margin-bottom:16px}
-  th{background:#eee;padding:8px;text-align:left}td{padding:8px;border-bottom:1px dashed #ccc}
-  .total{font-size:16px;font-weight:bold;text-align:right}
-  .footer{text-align:center;margin-top:24px;font-size:12px;border-top:1px dashed #000;padding-top:12px}
-  .no-print{display:block;text-align:center;margin-top:20px}</style></head><body>
-  <div class="head"><h1>${settings.businessName}</h1><p>${settings.businessAddress}</p><p>Tel: ${settings.businessPhone}</p></div>
-  <div style="display:flex;justify-content:space-between;margin-bottom:16px">
-    <div><b>Invoice #:</b> ${b.billNumber}<br><b>Date:</b> ${b.date} ${b.time}<br><b>Status:</b> ${b.status||'New'}</div>
-    <div style="text-align:right"><b>Customer:</b> ${b.customer.name}<br><b>Mobile:</b> ${b.customer.mobile}</div>
-  </div>
-  <table><thead><tr><th>#</th><th>ID</th><th>Product</th><th>Price</th><th>Qty</th><th>Total</th></tr></thead>
-  <tbody>${b.items.map((it,i)=>`<tr><td>${i+1}</td><td>${it.id}</td><td>${it.name}</td><td>Rs ${it.price.toFixed(2)}</td><td>${it.quantity}</td><td>Rs ${it.total.toFixed(2)}</td></tr>`).join('')}</tbody></table>
-  <div class="total">GRAND TOTAL: Rs ${b.total.toFixed(2)}</div>
-  <div class="footer">${settings.receiptFooter}</div>
-  <div class="no-print"><button onclick="window.print()" style="padding:8px 20px;margin-right:8px">🖨 Print</button><button onclick="window.close()">✕ Close</button></div>
-  <script>setTimeout(()=>window.print(),400)<\/script></body></html>`);
-  w.document.close();
-}
-
-// ═══════════════════ ANALYTICS ═══════════════════
-function updateAnalytics(){
-  const from=document.getElementById('aFrom').value;
-  const to=document.getElementById('aTo').value;
-  let list=[...bills];
-  if(from&&to)list=list.filter(b=>{const d=new Date(b.date);return d>=new Date(from)&&d<=new Date(to);});
-  const rev=list.reduce((s,b)=>s+b.total,0);
-  const sold=list.reduce((s,b)=>s+b.items.reduce((x,i)=>x+i.quantity,0),0);
-  const avg=list.length?rev/list.length:0;
-  document.getElementById('aRev').textContent=`Rs ${rev.toFixed(2)}`;
-  document.getElementById('aOrders').textContent=list.length;
-  document.getElementById('aSold').textContent=sold;
-  document.getElementById('aAvg').textContent=`Rs ${avg.toFixed(2)}`;
-  const ps={};list.forEach(b=>b.items.forEach(it=>{if(!ps[it.id])ps[it.id]={id:it.id,name:it.name,qty:0,rev:0};ps[it.id].qty+=it.quantity;ps[it.id].rev+=it.total;}));
-  const top=Object.values(ps).sort((a,b)=>b.qty-a.qty).slice(0,10);
-  const c=document.getElementById('bestSell');
-  if(!top.length){c.innerHTML='<div class="empty"><i class="fas fa-chart-bar"></i><p>No sales data yet</p></div>';return;}
-  c.innerHTML=top.map((p,i)=>`<div class="best-item">
-    <div class="best-rank ${i===0?'top':''}">${i+1}</div>
-    <div style="flex:1"><div class="best-name">${p.name}${i===0?' 👑':''}</div><div class="best-id">${p.id}</div></div>
-    <div style="text-align:right"><div class="best-qty">${p.qty}</div><div class="best-rev">Rs ${p.rev.toFixed(2)}</div></div>
-  </div>`).join('');
-}
-
-function resetA(){document.getElementById('aFrom').value='';document.getElementById('aTo').value='';updateAnalytics();}
-
-function updateStockAnalytics(){
-  document.getElementById('sTotProds').textContent=products.length;
-  document.getElementById('sStockVal').textContent=`Rs ${products.reduce((s,p)=>s+p.price*p.stock,0).toFixed(2)}`;
-  const low=products.filter(p=>p.stock>0&&p.stock<=5);
-  const out=products.filter(p=>p.stock===0);
-  document.getElementById('sLow').textContent=low.length;
-  document.getElementById('sOut').textContent=out.length;
-  const c=document.getElementById('lowStockList');
-  const items=[...low,...out].sort((a,b)=>a.stock-b.stock).slice(0,15);
-  if(!items.length){c.innerHTML='<div class="empty"><i class="fas fa-check-circle"></i><p>All products well stocked</p></div>';return;}
-  c.innerHTML=items.map(p=>`<div class="low-item">
-    <div><div class="low-name">${p.name}</div><div class="low-meta">${p.id} · Rs ${p.price.toFixed(2)}</div></div>
-    <div style="text-align:right"><div class="low-qty ${p.stock===0?'red':''}">${p.stock===0?'OUT':p.stock}</div><div style="font-size:10px;color:var(--text3)">${p.stock===0?'out of stock':'remaining'}</div></div>
-  </div>`).join('');
-}
-
-// ═══════════════════ CATALOG ═══════════════════
-function updateCatalogMeta(){
-  document.getElementById('catCount').textContent=products.length;
-  document.getElementById('catDate').textContent=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-  document.getElementById('catHeroTitle').textContent=settings.businessName||'Product Catalog';
-  const parts=[settings.businessAddress,settings.businessPhone].filter(Boolean);
-  document.getElementById('catHeroSub').textContent=parts.join(' · ')||'Live inventory catalog';
-}
-
-function setCatView(v){
-  catView=v;
-  document.getElementById('cvGrid').classList.toggle('active',v==='grid');
-  document.getElementById('cvList').classList.toggle('active',v==='list');
-  renderCatalog();
-}
-
-function renderCatalog(){
-  const s=(document.getElementById('catSearch')?.value||'').toLowerCase();
-  const f=document.getElementById('catFilter')?.value||'';
-  let list=products.filter(p=>{
-    if(s&&!p.name.toLowerCase().includes(s)&&!p.id.toLowerCase().includes(s))return false;
-    if(f==='in'&&p.stock<=0)return false;
-    if(f==='low'&&(p.stock===0||p.stock>5))return false;
-    if(f==='out'&&p.stock!==0)return false;
-    return true;
-  });
-  const c=document.getElementById('catContent');
-  if(!list.length){c.innerHTML='<div class="empty" style="padding:60px"><i class="fas fa-search"></i><p>No products found</p></div>';return;}
-  if(catView==='grid'){
-    c.innerHTML=`<div class="prod-grid">${list.map(p=>{
-      const img=p.imageBase64?`<img class="cat-img" src="${p.imageBase64}" alt="${p.name}">`:`<div class="cat-img-ph">${emojiFor(p.name)}</div>`;
-      return`<div class="cat-card">${img}<div class="cat-body">
-        <div class="cat-id">${p.id}</div>
-        <div class="cat-name">${p.name}</div>
-        ${p.description?`<div class="cat-desc">${p.description}</div>`:''}
-        <div class="cat-foot">
-          <div class="cat-price">Rs ${parseFloat(p.price).toFixed(2)}<sub>/ unit</sub></div>
-          ${stockBadge(p.stock)}
-        </div>
-      </div></div>`;
-    }).join('')}</div>`;
-  }else{
-    c.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">
-      <div class="cat-list-row" style="background:var(--bg3)">
-        <div style="font-size:10px;color:var(--text3)">IMG</div>
-        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3)">Product</div>
-        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3)">Description</div>
-        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);text-align:right">Price</div>
-      </div>
-      ${list.map(p=>{
-        const img=p.imageBase64?`<img class="cat-row-img" src="${p.imageBase64}" alt="${p.name}">`:`<div class="cat-row-ph">${emojiFor(p.name)}</div>`;
-        return`<div class="cat-list-row">${img}
-          <div><div style="font-size:14px;font-weight:600">${p.name}</div><div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace">${p.id}</div></div>
-          <div style="font-size:12px;color:var(--text2)">${(p.description||'—').substring(0,50)}</div>
-          <div style="text-align:right;font-size:17px;font-weight:800;color:var(--gold)">Rs ${parseFloat(p.price).toFixed(2)}</div>
-        </div>`;
-      }).join('')}
-    </div>`;
-  }
-}
-
-function exportCatalogPDF(){
-  try{
-  if(!window.jspdf){notify('PDF library not loaded','error');return;}
-
-  // ── Filter products first ──
-  var qs=document.getElementById('catSearch')?document.getElementById('catSearch').value.toLowerCase():'';
-  var qf=document.getElementById('catFilter')?document.getElementById('catFilter').value:'';
-  var list=[];
-  for(var i=0;i<products.length;i++){
-    var pr=products[i];
-    if(qs&&pr.name.toLowerCase().indexOf(qs)===-1&&pr.id.toLowerCase().indexOf(qs)===-1)continue;
-    if(qf==='in'&&pr.stock<=0)continue;
-    if(qf==='low'&&(pr.stock===0||pr.stock>5))continue;
-    if(qf==='out'&&pr.stock!==0)continue;
-    list.push(pr);
-  }
-  if(!list.length){notify('No products to export','error');return;}
-
-  notify('Generating PDF… Loading images','info');
-  showVeil('Generating catalog PDF…');
-
-  // ── Pre-load all images to get natural dimensions ──
-  var imgDims=[];
-  var loaded=0, total=list.length;
-
-  function onAllLoaded(){
-    try{ buildCatalogPDF(list, imgDims); }
-    catch(err){ notify('PDF error: '+err.message,'error'); console.error('exportCatalogPDF error:',err); }
-    hideVeil();
-  }
-
-  for(var i=0;i<list.length;i++){
-    (function(idx){
-      var p=list[idx];
-      if(p.imageBase64){
-        var img=new Image();
-        img.onload=function(){
-          imgDims[idx]={w:img.naturalWidth||img.width,h:img.naturalHeight||img.height};
-          loaded++;if(loaded>=total)onAllLoaded();
+        const firebaseConfig = {
+            databaseURL: "https://brandix-57f67-default-rtdb.firebaseio.com",
+            projectId: "brandix-57f67",
+            storageBucket: "brandix-57f67.firebasestorage.app"
         };
-        img.onerror=function(){
-          imgDims[idx]=null;
-          loaded++;if(loaded>=total)onAllLoaded();
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const T = {
+            si:{
+                title:'වෙසක් සුබපැතුම් පත් තරඟය - 2026',subtitle:'ඔබ කැමතිම බෞද්ධ නිර්මාණය සඳහා ඔබේ වටිනා මනාපය (Vote) ලබා දෙන්න',
+                loading:'දත්ත පූරණය වෙමින් පවතී...',no_cards:'පද්ධතියේ කිසිදු වෙසක් කාඩ්පතක් නොමැත.',
+                votes:'🌸 ලැබුණු මනාප:',vote_btn:'මනාපය පළ කරන්න (Vote)',voted:'ඔබේ මනාපය ලබා දුන්නා ✓',limit:'සීමාව ඉක්මවා ඇත',
+                confirm_vote:'ඔබේ මනාපය මෙම නිර්මාණය සඳහා ලබා දීමට ස්ථිරද?',vote_ok:'ඔබේ මනාපය සාර්ථකව සටහන් කරගන්නා ලදී. පින්සිදුවේවා!',
+                admin_pw:'Admin Password එක ඇතුලත් කරන්න:',wrong_pw:'Password වැරදියි!',
+                add_title:'නව වෙසක් කාඩ්පතක් එක් කිරීම',lbl_name:'නිර්මාණකරුගේ නම',ph_name:'උදා: නිමල් පෙරේරා',
+                lbl_dept:'දෙපාර්තමේන්තුව / අංශය',ph_dept:'උදා: Manufacturing | Shift B',lbl_img:'පින්තූර තෝරන්න (Multiple Files)',
+                submit:'කාඩ්පත පද්ධතියට ඇතුළත් කරන්න',uploading:'පින්තූර පද්ධතියට එක්වෙමින් පවතී...',
+                vote_title:'සජීවී ඡන්ද ගණන් කිරීම',th_name:'නම',th_dept:'අංශය',th_votes:'ඡන්දය',th_manage:'කළමනාකරණය',
+                close:'පැනලය වසන්න',fill_all:'සියලු විස්තර පුරවා පින්තූර තෝරන්න!',
+                img_big:'පින්තූරය විශාල වැඩියි! 800KB වලට වඩා අඩු පින්තූරයක් දමන්න.',
+                card_added:'වෙසක් කාඩ්පත සාර්ථකව පද්ධතියට එක් කරන ලදී!',
+                del_confirm:'මෙම කාඩ්පත පද්ධතියෙන් මකා දැමීමට අවශ්‍යද?',deleted:'මකා දමන ලදී.'
+            },
+            ta:{
+                title:'வேசாக் வாழ்த்து அட்டை போட்டி - 2026',subtitle:'உங்களுக்கு மிகவும் பிடித்த பௌத்த படைப்புக்கு உங்கள் வாக்கை அளிக்கவும்',
+                loading:'தரவு ஏற்றப்படுகிறது...',no_cards:'கணினியில் எந்த வேசாக் அட்டையும் இல்லை.',
+                votes:'🌸 பெறப்பட்ட வாக்குகள்:',vote_btn:'வாக்களிக்கவும் (Vote)',voted:'உங்கள் வாக்கு அளிக்கப்பட்டது ✓',limit:'வரம்பு மீறப்பட்டது',
+                confirm_vote:'இந்த படைப்புக்கு உங்கள் வாக்கை அளிக்க உறுதியாக உள்ளீர்களா?',vote_ok:'உங்கள் வாக்கு வெற்றிகரமாக பதிவு செய்யப்பட்டது!',
+                admin_pw:'Admin கடவுச்சொல்லை உள்ளிடவும்:',wrong_pw:'கடவுச்சொல் தவறானது!',
+                add_title:'புதிய வேசாக் அட்டை சேர்க்க',lbl_name:'படைப்பாளியின் பெயர்',ph_name:'எ.கா: நிமல் பெரேரா',
+                lbl_dept:'துறை / பிரிவு',ph_dept:'எ.கா: Manufacturing | Shift B',lbl_img:'படங்களை தேர்ந்தெடுக்கவும் (Multiple Files)',
+                submit:'அட்டையை கணினியில் சேர்க்கவும்',uploading:'படங்கள் பதிவேற்றப்படுகின்றன...',
+                vote_title:'நேரடி வாக்கு எண்ணிக்கை',th_name:'பெயர்',th_dept:'துறை',th_votes:'வாக்குகள்',th_manage:'நிர்வாகம்',
+                close:'பலகத்தை மூடவும்',fill_all:'அனைத்து விவரங்களையும் நிரப்பி படங்களை தேர்ந்தெடுக்கவும்!',
+                img_big:'படம் மிகவும் பெரியது! 800KB க்கும் குறைவான படத்தை பயன்படுத்தவும்.',
+                card_added:'வேசாக் அட்டை வெற்றிகரமாக சேர்க்கப்பட்டது!',
+                del_confirm:'இந்த அட்டையை கணினியில் இருந்து நீக்க விரும்புகிறீர்களா?',deleted:'நீக்கப்பட்டது.'
+            },
+            en:{
+                title:'Wesak Greeting Card Competition - 2026',subtitle:'Cast your vote for your favourite Buddhist creation',
+                loading:'Loading data...',no_cards:'No Wesak cards found in the system.',
+                votes:'🌸 Votes Received:',vote_btn:'Cast My Vote',voted:'Your Vote Cast ✓',limit:'Already Voted',
+                confirm_vote:'Are you sure you want to vote for this creation?',vote_ok:'Your vote has been successfully recorded. May you be blessed!',
+                admin_pw:'Enter Admin Password:',wrong_pw:'Incorrect Password!',
+                add_title:'Add New Wesak Card',lbl_name:"Creator's Name",ph_name:'e.g: Nimal Perera',
+                lbl_dept:'Department / Division',ph_dept:'e.g: Manufacturing | Shift B',lbl_img:'Select Images (Multiple Files)',
+                submit:'Add Card to System',uploading:'Uploading images...',
+                vote_title:'Live Vote Count',th_name:'Name',th_dept:'Department',th_votes:'Votes',th_manage:'Action',
+                close:'Close Panel',fill_all:'Please fill all details and select images!',
+                img_big:'Image is too large! Please use an image smaller than 800KB.',
+                card_added:'Wesak card successfully added to the system!',
+                del_confirm:'Are you sure you want to delete this card from the system?',deleted:'Deleted successfully.'
+            }
         };
-        img.src=p.imageBase64;
-      }else{
-        imgDims[idx]=null;
-        loaded++;if(loaded>=total)onAllLoaded();
-      }
-    })(i);
-  }
+        let currentLang = localStorage.getItem('wesak_lang') || 'si';
+        const t = k => (T[currentLang]||T.si)[k] || k;
 
-  }catch(err){
-    notify('PDF error: '+err.message,'error');
-    console.error('exportCatalogPDF error:',err);
-    hideVeil();
-  }
-}
+        function applyTranslations() {
+            document.getElementById('htmlRoot').lang = currentLang;
+            document.getElementById('headerTitle').textContent = t('title');
+            document.getElementById('headerSubtitle').textContent = t('subtitle');
+            document.getElementById('adminAddTitle').textContent = t('add_title');
+            document.getElementById('labelName').textContent = t('lbl_name');
+            document.getElementById('artistName').placeholder = t('ph_name');
+            document.getElementById('labelDept').textContent = t('lbl_dept');
+            document.getElementById('artistDept').placeholder = t('ph_dept');
+            document.getElementById('labelImages').textContent = t('lbl_img');
+            document.getElementById('submitCardBtn').textContent = t('submit');
+            document.getElementById('adminVoteTitle').textContent = t('vote_title');
+            document.getElementById('thName').textContent = t('th_name');
+            document.getElementById('thDept').textContent = t('th_dept');
+            document.getElementById('thVotes').textContent = t('th_votes');
+            document.getElementById('thManage').textContent = t('th_manage');
+            document.getElementById('closeAdminBtn').textContent = t('close');
+            ['Si','Ta','En'].forEach(l => {
+                const b = document.getElementById('btn'+l);
+                if(b) b.classList.toggle('active', currentLang === l.toLowerCase());
+            });
+            if(typeof _cachedCards !== 'undefined') renderCards(_cachedCards, _cachedVotes);
+        }
 
-function buildCatalogPDF(list, imgDims){
-  var jsPDF=window.jspdf.jsPDF;
-  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  var pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight(),m=14;
-  var pageNum=1;
+        window.setLanguage = (lang) => {
+            currentLang = lang;
+            localStorage.setItem('wesak_lang', lang);
+            applyTranslations();
+        };
 
-  // ── Professional Blue Palette ──
-  var navy=[12,35,75];
-  var blue=[25,80,175];
-  var midBlue=[45,110,210];
-  var lightBlue=[235,242,255];
-  var paleBlue=[245,248,255];
-  var darkText=[20,30,55];
-  var grayText=[95,110,135];
+        let _cachedCards = {}, _cachedVotes = {};
 
-  // ── Helper: Draw page footer ──
-  function drawFooter(){
-    doc.setFillColor(navy[0],navy[1],navy[2]);doc.rect(0,ph-11,pw,11,'F');
-    doc.setDrawColor(midBlue[0],midBlue[1],midBlue[2]);doc.setLineWidth(0.4);doc.line(0,ph-11,pw,ph-11);
-    doc.setFont('helvetica','italic');doc.setFontSize(7);doc.setTextColor(170,190,220);
-    doc.text(settings.receiptFooter||'Thank you for your business!',pw/2,ph-5,{align:'center'});
-    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(130,155,195);
-    doc.text('Page '+pageNum,pw-m,ph-5,{align:'right'});
-  }
+        let userHasVoted = false;
+        let selectedTargetCard = null;
+        let isAdminAuthenticated = false;
 
-  // ── Helper: Draw table header row ──
-  var col0=m, col1=m+10, col2=m+46, col3=m+138;
-  function drawTableHeader(yPos){
-    doc.setFillColor(navy[0],navy[1],navy[2]);doc.rect(m,yPos,pw-m*2,9,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(255,255,255);
-    doc.text('#',col0+3,yPos+6);
-    doc.text('IMAGE',col1+3,yPos+6);
-    doc.text('PRODUCT DETAILS',col2+3,yPos+6);
-    doc.text('PRICE (Rs)',col3+3,yPos+6);
-    return yPos+9;
-  }
+        let currentLightboxImages = [];
+        let currentLightboxIndex = 0;
 
-  // ══════════════ PAGE 1 HEADER ══════════════
-  doc.setFillColor(navy[0],navy[1],navy[2]);doc.rect(0,0,pw,40,'F');
-  doc.setFillColor(midBlue[0],midBlue[1],midBlue[2]);doc.rect(0,40,pw,1.5,'F');
-  doc.setFont('helvetica','bold');doc.setFontSize(22);doc.setTextColor(255,255,255);
-  doc.text(settings.businessName||'Product Catalog',pw/2,17,{align:'center'});
-  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(170,190,220);
-  var sub=[settings.businessAddress,settings.businessPhone].filter(Boolean).join('  •  ');
-  if(sub)doc.text(sub,pw/2,26,{align:'center'});
-  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(130,165,230);
-  doc.text('PRODUCT CATALOG',pw/2,35,{align:'center'});
+        // Secret Admin Portal Trigger
+        const secretIcon = document.getElementById("secretIcon");
+        let pressTimer;
+        
+        secretIcon.addEventListener("mousedown", () => pressTimer = setTimeout(triggerAdminAccess, 3000));
+        secretIcon.addEventListener("mouseup", () => clearTimeout(pressTimer));
+        secretIcon.addEventListener("touchstart", () => { pressTimer = setTimeout(triggerAdminAccess, 3000); });
+        secretIcon.addEventListener("touchend", () => clearTimeout(pressTimer));
 
-  var y=48;
+        function triggerAdminAccess() {
+            if (!isAdminAuthenticated) {
+                const pw = prompt(t('admin_pw'));
+                if (pw === "Admin@Wesak2026") { isAdminAuthenticated = true; document.getElementById("adminModal").style.display = "flex"; }
+                else { alert(t('wrong_pw')); }
+            } else { document.getElementById("adminModal").style.display = "flex"; }
+        }
 
-  // Meta row
-  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(darkText[0],darkText[1],darkText[2]);
-  doc.text('Product Catalog',m,y);
-  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(grayText[0],grayText[1],grayText[2]);
-  doc.text('Generated: '+new Date().toLocaleString('en-GB'),pw-m,y,{align:'right'});
-  doc.text(list.length+' Products',pw-m,y+5,{align:'right'});
+        window.closeAdminPanel = () => document.getElementById("adminModal").style.display = "none";
 
-  y+=9;
-  doc.setDrawColor(blue[0],blue[1],blue[2]);doc.setLineWidth(0.35);doc.line(m,y,pw-m,y);
-  y+=5;
+        window.changeSlide = (cardId, direction) => {
+            const cardEl = document.getElementById(`images-${cardId}`);
+            const imgs = cardEl.getElementsByClassName('slider-img');
+            let activeIdx = 0;
+            for(let i=0; i<imgs.length; i++) {
+                if(imgs[i].classList.contains('active')) { activeIdx = i; break; }
+            }
+            imgs[activeIdx].classList.remove('active');
+            let newIdx = (activeIdx + direction + imgs.length) % imgs.length;
+            imgs[newIdx].classList.add('active');
+            cardEl.getElementsByClassName('indicator-txt')[0].innerText = `${newIdx + 1}/${imgs.length}`;
+        };
 
-  y=drawTableHeader(y);
+        window.openLightbox = (cardId) => {
+            const cardEl = document.getElementById(`images-${cardId}`);
+            const imgs = cardEl.getElementsByClassName('slider-img');
+            currentLightboxImages = [];
+            currentLightboxIndex = 0;
+            for(let i=0; i<imgs.length; i++) {
+                currentLightboxImages.push(imgs[i].src);
+                if(imgs[i].classList.contains('active')) { currentLightboxIndex = i; }
+            }
+            document.getElementById("lightboxImg").src = currentLightboxImages[currentLightboxIndex];
+            document.getElementById("lightboxModal").style.display = "flex";
+        };
 
-  // ══════════════ PRODUCT ROWS ══════════════
-  var rowH=32;
+        window.closeLightbox = () => document.getElementById("lightboxModal").style.display = "none";
 
-  for(var idx=0;idx<list.length;idx++){
-    var p=list[idx];
+        window.changeLightboxImg = (direction) => {
+            currentLightboxIndex = (currentLightboxIndex + direction + currentLightboxImages.length) % currentLightboxImages.length;
+            document.getElementById("lightboxImg").src = currentLightboxImages[currentLightboxIndex];
+        };
 
-    // Page break check
-    if(y+rowH>ph-18){
-      drawFooter();
-      doc.addPage();pageNum++;
-      doc.setFillColor(navy[0],navy[1],navy[2]);doc.rect(0,0,pw,13,'F');
-      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(255,255,255);
-      doc.text((settings.businessName||'Catalog')+' — Product Catalog',pw/2,8.5,{align:'center'});
-      y=19;
-      y=drawTableHeader(y);
-    }
+        function checkVoterSession() {
+            const savedVote = localStorage.getItem("brandix_wesak_voted_rtdb_v2");
+            if (savedVote) { userHasVoted = true; selectedTargetCard = savedVote; }
+        }
 
-    // Alternating row background
-    if(idx%2===0){doc.setFillColor(paleBlue[0],paleBlue[1],paleBlue[2]);doc.rect(m,y,pw-m*2,rowH,'F');}
-    else{doc.setFillColor(255,255,255);doc.rect(m,y,pw-m*2,rowH,'F');}
+        function renderCards(contestCards, cardVotes) {
+            _cachedCards = contestCards; _cachedVotes = cardVotes;
+            const votingGrid = document.getElementById('votingGrid');
+            const adminTableBody = document.getElementById('adminTableBody');
+            votingGrid.innerHTML = ''; adminTableBody.innerHTML = '';
+            const cardIds = Object.keys(contestCards);
+            if(cardIds.length === 0) {
+                votingGrid.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#ffcc00;">${t('no_cards')}</p>`;
+                return;
+            }
+            cardIds.forEach(id => {
+                const card = contestCards[id];
+                const totalVotes = cardVotes[id] || 0;
+                const isVoted = (selectedTargetCard === id);
+                const imgs = Array.isArray(card.images) ? card.images : [card.img||''];
+                let sh = `<div class="card-image-slider" id="images-${id}">`;
+                if(imgs.length > 1) sh += `<button class="slide-btn prev-btn" onclick="changeSlide('${id}',-1)">&#10094;</button>`;
+                imgs.forEach((s,i) => { if(s) sh += `<img src="${s}" class="slider-img ${i===0?'active':''}" onclick="openLightbox('${id}')" alt="Wesak Card">`; });
+                if(imgs.length > 1) { sh += `<button class="slide-btn next-btn" onclick="changeSlide('${id}',1)">&#10095;</button><div class="img-indicator"><span class="indicator-txt">1/${imgs.length}</span></div>`; }
+                sh += '</div>';
+                votingGrid.innerHTML += `<div class="wesak-card">${sh}<div class="card-details"><h3>${card.name}</h3><p>${card.dept}</p><div class="live-votes">${t('votes')} ${totalVotes}</div></div><button class="vote-action-btn ${isVoted?'voted-state':''}" ${userHasVoted?'disabled':''} onclick="registerVote('${id}')">${isVoted?t('voted'):(userHasVoted?t('limit'):t('vote_btn'))}</button></div>`;
+                adminTableBody.innerHTML += `<tr><td><b>${card.name}</b></td><td>${card.dept}</td><td style="color:#dc2626;font-weight:bold;">${totalVotes}</td><td><button class="delete-btn" onclick="deleteCard('${id}')">Delete</button></td></tr>`;
+            });
+        }
 
-    // Bottom border
-    doc.setDrawColor(215,225,240);doc.setLineWidth(0.15);doc.line(m,y+rowH,pw-m,y+rowH);
+        function listenToLiveDatabase() {
+            checkVoterSession();
+            applyTranslations();
+            onValue(ref(db), (snapshot) => {
+                const data = snapshot.val() || {};
+                renderCards(data.contest_cards || {}, data.card_votes || {});
+            });
+        }
 
-    // # Column
-    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(grayText[0],grayText[1],grayText[2]);
-    doc.text(String(idx+1),col0+3,y+rowH/2+1);
+        window.registerVote = async (cardId) => {
+            if (userHasVoted) return;
+            if (!confirm(t('confirm_vote'))) return;
+            try {
+                localStorage.setItem("brandix_wesak_voted_rtdb_v2", cardId);
+                const voteRef = ref(db, `card_votes/${cardId}`);
+                const snapshot = await get(voteRef);
+                await set(voteRef, (snapshot.val() || 0) + 1);
+                alert(t('vote_ok'));
+                window.location.reload();
+            } catch (err) { alert("Error: " + err.message); }
+        };
 
-    // Image thumbnail — fitted with correct aspect ratio (object-fit: contain)
-    var thumbX=col1+1, thumbY=y+2, thumbW=30, thumbH=28;
-    // Draw background box
-    doc.setFillColor(lightBlue[0],lightBlue[1],lightBlue[2]);doc.rect(thumbX,thumbY,thumbW,thumbH,'F');
+        const getBase64 = (file) => new Promise((res, rej) => {
+            const r = new FileReader(); r.readAsDataURL(file);
+            r.onload = () => res(r.result); r.onerror = e => rej(e);
+        });
 
-    if(p.imageBase64 && imgDims[idx]){
-      try{
-        var fmt='JPEG';
-        if(p.imageBase64.indexOf('data:image/png')===0)fmt='PNG';
-        if(p.imageBase64.indexOf('data:image/webp')===0)fmt='WEBP';
-        // Calculate fit dimensions (object-fit: contain)
-        var iw=imgDims[idx].w, ih=imgDims[idx].h;
-        var areaW=thumbW-1, areaH=thumbH-1;
-        var scale=Math.min(areaW/iw, areaH/ih);
-        var drawW=iw*scale, drawH=ih*scale;
-        var drawX=thumbX+0.5+(areaW-drawW)/2;
-        var drawY=thumbY+0.5+(areaH-drawH)/2;
-        doc.addImage(p.imageBase64,fmt,drawX,drawY,drawW,drawH);
-      }catch(ie){
-        doc.setFont('helvetica','normal');doc.setFontSize(6);doc.setTextColor(150,165,190);
-        doc.text('No Image',thumbX+thumbW/2,thumbY+thumbH/2+1,{align:'center'});
-      }
-    }else{
-      doc.setFont('helvetica','normal');doc.setFontSize(6);doc.setTextColor(150,165,190);
-      doc.text('No Image',thumbX+thumbW/2,thumbY+thumbH/2+1,{align:'center'});
-    }
+        window.addNewCard = async () => {
+            const name = document.getElementById("artistName").value.trim();
+            const dept = document.getElementById("artistDept").value.trim();
+            const fileInput = document.getElementById("artistImgFiles");
+            const status = document.getElementById("uploadStatus");
+            const btn = document.getElementById("submitCardBtn");
 
-    // Product details column
-    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(darkText[0],darkText[1],darkText[2]);
-    doc.text(String(p.name||'').substring(0,50),col2+3,y+10);
-    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(grayText[0],grayText[1],grayText[2]);
-    doc.text('ID: '+String(p.id||''),col2+3,y+16);
-    if(p.description){
-      doc.setFontSize(7);doc.setTextColor(130,140,160);
-      doc.text(String(p.description).substring(0,55),col2+3,y+22);
-    }
+            if (!name || !dept || fileInput.files.length === 0) { return alert(t('fill_all')); }
 
-    // Price column
-    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(blue[0],blue[1],blue[2]);
-    doc.text('Rs '+parseFloat(p.price||0).toFixed(2),col3+3,y+rowH/2+1);
+            try {
+                btn.disabled = true;
+                status.innerText = t('uploading');
+                let base64Images = [];
+                for(let i=0; i<fileInput.files.length; i++) {
+                    let file = fileInput.files[i];
+                    if (file.size > 800000) {
+                        btn.disabled = false; status.innerText = "";
+                        return alert(`"${file.name}" — ${t('img_big')}`);
+                    }
+                    let b64 = await getBase64(file);
+                    base64Images.push(b64);
+                }
+                const customId = "card_" + Date.now();
+                await set(ref(db, 'contest_cards/' + customId), { name, dept, images: base64Images });
+                await set(ref(db, 'card_votes/' + customId), 0);
+                alert(t('card_added'));
+                document.getElementById("artistName").value = ""; document.getElementById("artistDept").value = ""; fileInput.value = ""; status.innerText = "";
+            } catch (err) { alert("Upload failed: " + err.message); } finally { btn.disabled = false; }
+        };
 
-    y+=rowH;
-  }
+        window.deleteCard = async (cardId) => {
+            if (confirm(t('del_confirm'))) {
+                try { await remove(ref(db, 'contest_cards/' + cardId)); await remove(ref(db, 'card_votes/' + cardId)); alert(t('deleted')); } 
+                catch (err) { alert("Delete failed: " + err.message); }
+            }
+        };
 
-  // ── Summary bar ──
-  if(y+14<ph-18){
-    y+=4;
-    doc.setFillColor(navy[0],navy[1],navy[2]);doc.rect(m,y,pw-m*2,12,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(255,255,255);
-    doc.text('TOTAL PRODUCTS: '+list.length,pw/2,y+8,{align:'center'});
-  }
-
-  // Final footer
-  drawFooter();
-
-  var fname=(settings.businessName||'Catalog').replace(/\s+/g,'_')+'_Catalog_'+new Date().toISOString().split('T')[0]+'.pdf';
-  doc.save(fname);
-  notify('Catalog PDF exported!','success');
-}
-
-// ═══════════════════ SETTINGS ═══════════════════
-function applySettingsUI(){
-  document.getElementById('sBizName').value=settings.businessName||'';
-  document.getElementById('sBizAddr').value=settings.businessAddress||'';
-  document.getElementById('sBizPhone').value=settings.businessPhone||'';
-  document.getElementById('sBizEmail').value=settings.businessEmail||'';
-  document.getElementById('sFooter').value=settings.receiptFooter||'Thank you for your business!';
-  document.getElementById('sPrefix').value=settings.invoicePrefix||'T';
-  document.getElementById('sDigits').value=settings.invoiceDigits||4;
-  document.getElementById('sStart').value=settings.startingNumber||1;
-  document.getElementById('sFormat').value=settings.invoiceFormat||'prefix-number';
-  document.getElementById('logoIcon').textContent=settings.businessName?.charAt(0)||'S';
-  if(settings.logoBase64){
-    document.getElementById('logoIcon').style.backgroundImage=`url('${settings.logoBase64}')`;
-    document.getElementById('logoIcon').style.backgroundSize='cover';
-    document.getElementById('logoIcon').textContent='';
-    document.getElementById('logoBox').innerHTML=`<img src="${settings.logoBase64}" style="width:100%;height:100%;object-fit:cover">`;
-    document.getElementById('removeLogoBtn').style.display='inline-flex';
-  }
-}
-
-function saveSettings(){
-  settings.businessName=document.getElementById('sBizName').value;
-  settings.businessAddress=document.getElementById('sBizAddr').value;
-  settings.businessPhone=document.getElementById('sBizPhone').value;
-  settings.businessEmail=document.getElementById('sBizEmail').value;
-  settings.receiptFooter=document.getElementById('sFooter').value;
-  settings.invoicePrefix=document.getElementById('sPrefix').value;
-  settings.invoiceDigits=parseInt(document.getElementById('sDigits').value);
-  settings.startingNumber=parseInt(document.getElementById('sStart').value);
-  settings.invoiceFormat=document.getElementById('sFormat').value;
-  if(logoImgB64){settings.logoBase64=logoImgB64;logoImgB64=null;}
-  saveSettingsDB().then(()=>{
-    document.getElementById('logoIcon').textContent=settings.businessName?.charAt(0)||'S';
-    if(settings.logoBase64){document.getElementById('logoIcon').style.backgroundImage=`url('${settings.logoBase64}')`;document.getElementById('logoIcon').style.backgroundSize='cover';document.getElementById('logoIcon').textContent='';}
-    updateInvDisplay();updateCatalogMeta();
-  });
-}
-
-function handleLogoImg(e){
-  const f=e.target.files[0];if(!f)return;
-  if(f.size>2*1024*1024){notify("Logo must be <2MB","error");return;}
-  const r=new FileReader();r.onload=ev=>{logoImgB64=ev.target.result;document.getElementById('logoBox').innerHTML=`<img src="${logoImgB64}" style="width:100%;height:100%;object-fit:cover">`;document.getElementById('removeLogoBtn').style.display='inline-flex';};r.readAsDataURL(f);
-}
-
-function removeLogo(){
-  document.getElementById('logoBox').innerHTML='<div class="img-placeholder"><i class="fas fa-image"></i><span>Click to upload</span></div>';
-  document.getElementById('removeLogoBtn').style.display='none';
-  document.getElementById('logoFile').value='';
-  logoImgB64=null;settings.logoBase64=null;
-  document.getElementById('logoIcon').style.backgroundImage='none';
-  document.getElementById('logoIcon').textContent=settings.businessName?.charAt(0)||'S';
-}
-
-function previewInvNum(){
-  const pfx=document.getElementById('sPrefix').value||'T';
-  const dig=parseInt(document.getElementById('sDigits').value)||4;
-  const st=parseInt(document.getElementById('sStart').value)||1;
-  const fmt=document.getElementById('sFormat').value;
-  const now=new Date(),pad=st.toString().padStart(dig,'0');
-  let prev='';
-  if(fmt==='prefix-year-number')prev=`${pfx}${now.getFullYear()}-${pad}`;
-  else if(fmt==='year-month-number')prev=`${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${pad}`;
-  else if(fmt==='sequential')prev=pad;
-  else prev=`${pfx}${pad}`;
-  alert(`Preview: ${prev}`);
-}
-
-function resetInvCounter(){if(confirm('Reset invoice counter?')){updateInvDisplay();notify("Counter reset","success");}}
-
-function clearAllData(){
-  if(!confirm('WARNING: Delete ALL data?'))return;
-  showVeil("Clearing…");
-  db.ref().remove().then(()=>{
-    products=[];bills=[];cart=[];
-    settings={businessName:"Stationary Pro",businessAddress:"123 Main Street, City",businessPhone:"(123) 456-7890",businessEmail:"info@stationarypro.com",logoBase64:null,receiptFooter:"Thank you for your business!",invoicePrefix:"T",invoiceDigits:4,startingNumber:1,invoiceFormat:"prefix-number"};
-    applySettingsUI();loadProducts();loadSellProducts();loadBills();updateAnalytics();updateStockAnalytics();updateInvDisplay();
-    hideVeil();notify("All data cleared","success");
-  }).catch(()=>{hideVeil();notify("Error clearing","error");});
-}
-
-// ═══════════════════ EXPORTS ═══════════════════
-function exportBillsCSV(){
-  if(!bills.length){notify("No bills","error");return;}
-  const rows=[['Bill No','Date','Time','Customer','Mobile','Address','Total','Status'],...bills.map(b=>[b.billNumber,b.date,b.time,`"${b.customer.name}"`,b.customer.mobile,`"${b.customer.address||''}"`,b.total.toFixed(2),b.status||'New'])];
-  const blob=new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`bills_${new Date().toISOString().split('T')[0]}.csv`;a.click();
-  notify("CSV exported","success");
-}
-
-function exportAnalyticsCSV(){
-  if(!bills.length){notify("No data","error");return;}
-  const from=document.getElementById('aFrom').value,to=document.getElementById('aTo').value;
-  let list=[...bills];
-  if(from&&to)list=list.filter(b=>{const d=new Date(b.date);return d>=new Date(from)&&d<=new Date(to);});
-  const ps={};list.forEach(b=>b.items.forEach(it=>{if(!ps[it.name])ps[it.name]={qty:0,rev:0};ps[it.name].qty+=it.quantity;ps[it.name].rev+=it.total;}));
-  const top=Object.entries(ps).sort((a,b)=>b[1].qty-a[1].qty).slice(0,10);
-  const rev=list.reduce((s,b)=>s+b.total,0);
-  const rows=[['Report',new Date().toLocaleString()],['Date Range',from&&to?`${from} to ${to}`:'All Time'],['Total Revenue',`Rs ${rev.toFixed(2)}`],['Total Orders',list.length],['',''],['TOP 10 PRODUCTS',''],['Product','Qty Sold','Revenue'],...top.map(([n,d])=>[`"${n}"`,d.qty,`Rs ${d.rev.toFixed(2)}`])];
-  const blob=new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`analytics_${new Date().toISOString().split('T')[0]}.csv`;a.click();
-  notify("Analytics exported","success");
-}
-
-function exportStockCSV(){
-  if(!products.length){notify("No products","error");return;}
-  const rows=[['ID','Name','Price (Rs)','Stock','Value (Rs)','Status'],...products.map(p=>[p.id,`"${p.name}"`,p.price.toFixed(2),p.stock,(p.price*p.stock).toFixed(2),p.stock===0?'Out of Stock':p.stock<=5?'Low Stock':'OK'])];
-  const blob=new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`stock_${new Date().toISOString().split('T')[0]}.csv`;a.click();
-  notify("Stock report exported","success");
-}
-
-// ═══════════════════ UI HELPERS ═══════════════════
-function showVeil(msg='Loading…'){const v=document.getElementById('veil');v.classList.add('show');document.getElementById('veilTxt').textContent=msg;}
-function hideVeil(){document.getElementById('veil').classList.remove('show');}
-
-function notify(msg,type='info'){
-  const w=document.getElementById('notif-wrap');
-  const old=w.querySelectorAll(`.notif.${type}`);
-  if(old.length>2)old[0].remove();
-  const d=document.createElement('div');
-  d.className=`notif ${type}`;
-  const icons={success:'check-circle',error:'exclamation-circle',warning:'exclamation-triangle',info:'info-circle'};
-  d.innerHTML=`<i class="fas fa-${icons[type]||'info-circle'}"></i>${msg}`;
-  w.appendChild(d);
-  setTimeout(()=>{d.style.transition='opacity .3s';d.style.opacity='0';setTimeout(()=>d.remove(),300);},3500);
-}
-
-// expose
-window.showTab=showTab;window.loadSellProducts=loadSellProducts;
-window.addToCart=addToCart;window.changeQty=changeQty;window.clearCart=clearCart;
-window.checkout=checkout;window.cancelBillEdit=cancelBillEdit;
-window.editProd=editProd;window.delProd=delProd;window.resetProdForm=resetProdForm;window.cancelProdEdit=cancelProdEdit;
-window.handleProdImg=handleProdImg;window.removeProdImg=removeProdImg;
-window.viewBill=viewBill;window.editBill=editBill;window.delBill=delBill;
-window.cycleBillStatus=cycleBillStatus;window.editBillNum2=editBillNum2;
-window.printBillDirect=printBillDirect;window.closeModal=closeModal;
-window.printBill=printBill;window.downloadBillPDF=downloadBillPDF;
-window.updateAnalytics=updateAnalytics;window.resetA=resetA;
-window.updateStockAnalytics=updateStockAnalytics;
-window.renderCatalog=renderCatalog;window.setCatView=setCatView;window.exportCatalogPDF=exportCatalogPDF;
-window.saveSettings=saveSettings;window.handleLogoImg=handleLogoImg;window.removeLogo=removeLogo;
-window.previewInvNum=previewInvNum;window.resetInvCounter=resetInvCounter;window.clearAllData=clearAllData;
-window.editNextInv=editNextInv;
-window.exportBillsCSV=exportBillsCSV;window.exportAnalyticsCSV=exportAnalyticsCSV;window.exportStockCSV=exportStockCSV;
-</script>
+        listenToLiveDatabase();
+    </script>
 </body>
 </html>
